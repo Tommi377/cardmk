@@ -12,12 +12,14 @@ namespace RealMK;
 /// </summary>
 public static class Log {
     public enum Level {
+        Trace,
         Debug,
         Info,
         Warning,
         Error
     }
 
+    private static readonly Color _traceColor = new(0.4f, 0.4f, 0.4f); // Dark 
     private static readonly Color _debugColor = new(0.5f, 0.8f, 1.0f); // Light blue
     private static readonly Color _infoColor = new(0.8f, 0.8f, 0.8f); // Light gray
     private static readonly Color _warningColor = new(1.0f, 0.8f, 0.0f); // Yellow
@@ -52,6 +54,18 @@ public static class Log {
         WriteToFile($"Godot Version: {Engine.GetVersionInfo()["string"]}");
         WriteToFile($"OS: {OS.GetName()} {OS.GetVersion()}");
         WriteToFile("");
+    }
+
+    /// <summary>
+    ///     Log a trace message. Use for debugging traces.
+    /// </summary>
+    public static void Trace(
+        string message,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerMemberName] string memberName = ""
+    ) {
+        LogMessage(Level.Trace, message, filePath, lineNumber, memberName);
     }
 
     /// <summary>
@@ -123,6 +137,7 @@ public static class Log {
 
         // Get color for this log level
         Color color = level switch {
+            Level.Trace=> _traceColor,
             Level.Debug => _debugColor,
             Level.Info => _infoColor,
             Level.Warning => _warningColor,

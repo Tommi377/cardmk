@@ -22,9 +22,11 @@ grow_vertical = 2
 stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="Control/SubViewportContainer" unique_id=1083354945]
+handle_input_locally = false
 size = Vector2i(1152, 648)
 size_2d_override = Vector2i(1152, 648)
 size_2d_override_stretch = true
+render_target_update_mode = 4
 
 [node name="Icon" type="Sprite2D" parent="Control/SubViewportContainer/SubViewport" unique_id=148160259]
 position = Vector2(588, 290)

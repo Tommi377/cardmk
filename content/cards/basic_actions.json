@@ -1,0 +1,326 @@
+{
+  "cards": [
+    {
+      "id": "card.march",
+      "type": "basic",
+      "color": "green",
+      "nameKey": "card.march.name",
+      "descriptionKey": "card.march.desc",
+      "sidewaysValue": 1,
+      "basicEffect": {
+        "type": "movement",
+        "value": 2,
+        "movementType": "normal"
+      },
+      "enhancedEffect": {
+        "type": "movement",
+        "value": 4,
+        "movementType": "normal"
+      }
+    },
+    {
+      "id": "card.stamina",
+      "type": "basic",
+      "color": "blue",
+      "basicEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "movement",
+            "value": 2
+          },
+          {
+            "type": "attack",
+            "value": 2,
+            "attackType": "melee",
+            "element": "physical"
+          }
+        ]
+      },
+      "enhancedEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "movement",
+            "value": 4
+          },
+          {
+            "type": "attack",
+            "value": 4,
+            "attackType": "melee",
+            "element": "physical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "card.determination",
+      "type": "basic",
+      "color": "blue",
+      "basicEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "attack",
+            "value": 2,
+            "attackType": "melee",
+            "element": "physical"
+          },
+          {
+            "type": "block",
+            "value": 3
+          }
+        ]
+      },
+      "enhancedEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "attack",
+            "value": 4,
+            "attackType": "melee",
+            "element": "physical"
+          },
+          {
+            "type": "block",
+            "value": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "card.rage",
+      "type": "basic",
+      "color": "red",
+      "basicEffect": {
+        "type": "attack",
+        "value": 2,
+        "attackType": "melee",
+        "element": "physical"
+      },
+      "enhancedEffect": {
+        "type": "attack",
+        "value": 4,
+        "attackType": "melee",
+        "element": "physical"
+      }
+    },
+    {
+      "id": "card.swiftness",
+      "type": "basic",
+      "color": "white",
+      "basicEffect": {
+        "type": "movement",
+        "value": 2
+      },
+      "enhancedEffect": {
+        "type": "movement",
+        "value": 4,
+        "movementType": "flying"
+      }
+    },
+    {
+      "id": "card.promise",
+      "type": "basic",
+      "color": "blue",
+      "basicEffect": {
+        "type": "influence",
+        "value": 2
+      },
+      "enhancedEffect": {
+        "type": "influence",
+        "value": 4
+      }
+    },
+    {
+      "id": "card.tranquility",
+      "type": "basic",
+      "color": "green",
+      "basicEffect": {
+        "type": "healing",
+        "value": 1
+      },
+      "enhancedEffect": {
+        "type": "healing",
+        "value": 2
+      }
+    },
+    {
+      "id": "card.threaten",
+      "type": "basic",
+      "color": "red",
+      "basicEffect": {
+        "type": "influence",
+        "value": 2
+      },
+      "enhancedEffect": {
+        "type": "influence",
+        "value": 5
+      }
+    },
+    {
+      "id": "card.cold_toughness",
+      "type": "basic",
+      "color": "blue",
+      "basicEffect": {
+        "type": "block",
+        "value": 3,
+        "element": "ice"
+      },
+      "enhancedEffect": {
+        "type": "block",
+        "value": 5,
+        "element": "ice"
+      }
+    },
+    {
+      "id": "card.improvisation",
+      "type": "basic",
+      "color": "red",
+      "basicEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "attack",
+            "value": 2,
+            "attackType": "ranged",
+            "element": "physical"
+          },
+          {
+            "type": "block",
+            "value": 2
+          },
+          {
+            "type": "movement",
+            "value": 2
+          },
+          {
+            "type": "influence",
+            "value": 2
+          }
+        ]
+      },
+      "enhancedEffect": {
+        "type": "composite",
+        "mode": "choice",
+        "components": [
+          {
+            "type": "attack",
+            "value": 3,
+            "attackType": "ranged",
+            "element": "physical"
+          },
+          {
+            "type": "block",
+            "value": 3
+          },
+          {
+            "type": "movement",
+            "value": 3
+          },
+          {
+            "type": "influence",
+            "value": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "card.fireball",
+      "type": "spell",
+      "color": "red",
+      "basicEffect": {
+        "type": "attack",
+        "value": 5,
+        "attackType": "ranged",
+        "element": "fire"
+      },
+      "enhancedEffect": {
+        "type": "attack",
+        "value": 8,
+        "attackType": "siege",
+        "element": "fire"
+      }
+    },
+    {
+      "id": "card.ice_bolt",
+      "type": "spell",
+      "color": "blue",
+      "basicEffect": {
+        "type": "attack",
+        "value": 3,
+        "attackType": "ranged",
+        "element": "ice"
+      },
+      "enhancedEffect": {
+        "type": "attack",
+        "value": 5,
+        "attackType": "ranged",
+        "element": "coldfire"
+      }
+    },
+    {
+      "id": "card.underground_travel",
+      "type": "advanced",
+      "color": "green",
+      "basicEffect": {
+        "type": "movement",
+        "value": 3,
+        "movementType": "underground"
+      },
+      "enhancedEffect": {
+        "type": "movement",
+        "value": 5,
+        "movementType": "underground"
+      }
+    },
+    {
+      "id": "card.shield_bash",
+      "type": "advanced",
+      "color": "red",
+      "basicEffect": {
+        "type": "composite",
+        "mode": "all",
+        "components": [
+          {
+            "type": "block",
+            "value": 3
+          },
+          {
+            "type": "attack",
+            "value": 2,
+            "attackType": "melee",
+            "element": "physical"
+          }
+        ]
+      },
+      "enhancedEffect": {
+        "type": "composite",
+        "mode": "all",
+        "components": [
+          {
+            "type": "block",
+            "value": 5
+          },
+          {
+            "type": "attack",
+            "value": 4,
+            "attackType": "melee",
+            "element": "physical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "card.wound",
+      "type": "wound",
+      "color": "none",
+      "canPlaySideways": false
+    }
+  ]
+}

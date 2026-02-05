@@ -9,4 +9,12 @@
   <ItemGroup>
     <Compile Remove="tests\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="nodes\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="content\cards\basic_actions.json" />
+  </ItemGroup>
 </Project>

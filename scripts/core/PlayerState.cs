@@ -18,7 +18,7 @@ public sealed class PlayerState
     /// <summary>
     /// Creates a new player state.
     /// </summary>
-    public PlayerState(PlayerId id, string heroId, HexCoord startPosition)
+    public PlayerState(PlayerId id, HeroId heroId, HexCoord startPosition)
     {
         Id = id;
         HeroId = heroId;
@@ -55,7 +55,7 @@ public sealed class PlayerState
     /// <summary>
     /// The hero this player is using.
     /// </summary>
-    public string HeroId { get; }
+    public HeroId HeroId { get; }
 
     /// <summary>
     /// Current position on the map.
