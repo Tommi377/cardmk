@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\scripts\map\HexCoord.cs" Link="HexCoord.cs" />
+    <ProjectReference Include="..\RealMK.csproj" />
   </ItemGroup>
 
 </Project>
