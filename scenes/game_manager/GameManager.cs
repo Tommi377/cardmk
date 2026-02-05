@@ -10,6 +10,8 @@ namespace RealMK;
 public partial class GameManager : Node
 {
     private ContentDatabase? _contentDb;
+    private EventBus? _eventBus;
+    private CommandDispatcher? _dispatcher;
 
     public override void _Ready() {
         base._Ready();
@@ -20,6 +22,9 @@ public partial class GameManager : Node
     private void InitializeGame()
     {
         ShowLoading(true);
+
+        _eventBus = new EventBus();
+        _dispatcher= new CommandDispatcher(_eventBus);
 
         try
         {
