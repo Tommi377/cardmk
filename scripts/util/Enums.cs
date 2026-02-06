@@ -30,3 +30,42 @@ public enum MovementType
     Flying,
     Underground
 }
+
+/// <summary>
+/// Day or night phase of the game.
+/// </summary>
+public enum DayNightPhase
+{
+    Day,
+    Night
+}
+
+/// <summary>
+/// Terrain types for hex cells.
+/// </summary>
+public enum TerrainType
+{
+    Plains,
+    Forest,
+    Hills,
+    Swamp,
+    Wasteland,
+    Desert,
+    Mountain,
+    Lake,
+    Ocean,
+    City
+}
+
+/// <summary>
+/// Enemy category types.
+/// </summary>
+public enum EnemyCategory
+{
+    Marauding,
+    Keep,
+    Tower,
+    Dungeon,
+    City,
+    Draconum
+}
