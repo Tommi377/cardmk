@@ -1,6 +1,7 @@
-[gd_scene format=4 uid="uid://dggfowo1x7ts8"]
+[gd_scene format=3 uid="uid://dggfowo1x7ts8"]
 
 [ext_resource type="Texture2D" uid="uid://c3ut82u5wtijs" path="res://Tilemap.png" id="1_xuggf"]
+[ext_resource type="Script" uid="uid://dvmftqijqyfil" path="res://scenes/world_map/WorldMap.cs" id="2_script"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pdx7j"]
 texture = ExtResource("1_xuggf")
@@ -16,12 +17,12 @@ texture_region_size = Vector2i(192, 384)
 
 [sub_resource type="TileSet" id="TileSet_pro8c"]
 tile_shape = 3
-tile_layout = 2
 tile_size = Vector2i(190, 182)
 sources/0 = SubResource("TileSetAtlasSource_pdx7j")
 
-[node name="WorldMap" type="Node2D" unique_id=888610345]
+[node name="WorldMap" type="Node2D" unique_id=888610345 node_paths=PackedStringArray("TileMapLayer")]
+script = ExtResource("2_script")
+TileMapLayer = NodePath("TileMapLayer")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=688759781]
-tile_map_data = PackedByteArray("AAABAP//AAAAAAAAAAABAP7/AAABAAAAAAACAP7/AAABAAAAAAAAAP//AAABAAAAAAACAP//AAACAAAAAAABAAAAAAACAAAAAAAAAAAAAAACAAAAAAADAP7/AAADAAAAAAADAP//AAADAAAAAAACAAAAAAAEAAAAAAADAAAAAAAEAAAAAAACAAEAAAAFAAAAAAABAAEAAAAFAAAAAAAEAP7/AAAGAAAAAAADAP3/AAAHAAAAAAAEAP3/AAAGAAAAAAAEAP//AAAGAAAAAAA=")
 tile_set = SubResource("TileSet_pro8c")

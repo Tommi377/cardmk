@@ -1,6 +1,11 @@
 [gd_scene format=3 uid="uid://fe1mivd7th8d"]
 
 [ext_resource type="Script" uid="uid://cnknaw868i68u" path="res://scenes/game_manager/GameManager.cs" id="1_lycnq"]
+[ext_resource type="PackedScene" uid="uid://dggfowo1x7ts8" path="res://scenes/world_map/world_map.tscn" id="2_0drbn"]
 
-[node name="GameManager" type="Node2D" unique_id=1623114658]
+[node name="GameManager" type="Node2D" unique_id=1623114658 node_paths=PackedStringArray("_worldMap")]
 script = ExtResource("1_lycnq")
+_worldMap = NodePath("WorldMap")
+
+[node name="WorldMap" parent="." unique_id=888610345 instance=ExtResource("2_0drbn")]
+position = Vector2(544, 323)

@@ -225,15 +225,21 @@ public sealed class TilePlacementService
 
     /// <summary>
     /// Calculates the center position for a new tile placed adjacent to an edge.
+    /// For 7-hex tiles, the new tile's center is placed 2 hexes away from the edge.
+    /// This ensures the tiles connect at their boundaries without overlapping.
     /// </summary>
     /// <param name="edgeCoord">The edge coordinate on the existing map.</param>
     /// <param name="direction">The direction to place the new tile.</param>
     /// <returns>The center position for the new tile.</returns>
     public HexCoord CalculateTileCenter(HexCoord edgeCoord, int direction)
     {
-        // The new tile's center is placed such that the edge hex is at the edge of the new tile
-        // For a 7-hex tile, the center is 1 hex away in the given direction
-        return edgeCoord.Neighbor(direction);
+        // For 7-hex tiles (center + 6 surrounding), each tile has a "radius" of 1 from center.
+        // When connecting two tiles at their edges, we need to place the new center
+        // 2 hexes away from the edge hex to avoid overlap:
+        // - 1 hex to reach the boundary of the new tile
+        // - 1 hex for the new tile's center
+        HexCoord step = edgeCoord.Neighbor(direction) - edgeCoord;
+        return edgeCoord + step + step;
     }
 
     /// <summary>

@@ -84,8 +84,7 @@ public sealed class GameState
         _players = new List<PlayerState>(players);
 
         Rng = new DeterministicRandom(seed);
-        // TODO: Map  
-        // Map = new MapState();
+        Map = new MapState();
         
         // TODO: Mana
         // ManaSource = new ManaSource(_players.Count);
@@ -156,11 +155,10 @@ public sealed class GameState
     /// </summary>
     public PlayerId ActivePlayerId { get; private set; }
 
-    // TODO: Map
     /// <summary>
     /// The map state.
     /// </summary>
-    // public MapState Map { get; }
+    public MapState Map { get; }
 
     // TODO: Mana
     /// <summary>
