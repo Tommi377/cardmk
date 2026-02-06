@@ -14,7 +14,7 @@ public sealed class ContentDatabase
     private readonly Dictionary<CardId, CardDefinition> _cards = new();
     // private readonly Dictionary<EnemyId, EnemyDefinition> _enemies = new();
     // private readonly Dictionary<UnitId, UnitDefinition> _units = new();
-    // private readonly Dictionary<TileDefinitionId, TileDefinition> _tiles = new();
+    private readonly Dictionary<TileDefinitionId, TileDefinition> _tiles = new();
     // private readonly Dictionary<ScenarioId, ScenarioDefinition> _scenarios = new();
     // private readonly Dictionary<HeroId, HeroDefinition> _heroes = new();
 
@@ -209,59 +209,58 @@ public sealed class ContentDatabase
 
     #region Tiles
 
-    // TODO: Map
     /// <summary>
     /// All tile definitions.
     /// </summary>
-    // public IReadOnlyDictionary<TileDefinitionId, TileDefinition> Tiles => _tiles;
+    public IReadOnlyDictionary<TileDefinitionId, TileDefinition> Tiles => _tiles;
 
     /// <summary>
     /// Gets a tile definition by ID.
     /// </summary>
     /// <exception cref="KeyNotFoundException">If tile not found.</exception>
-    // public TileDefinition GetTile(TileDefinitionId id)
-    // {
-    //     if (!_tiles.TryGetValue(id, out TileDefinition? tile))
-    //         throw new KeyNotFoundException($"Tile '{id}' not found in content database");
-    //     return tile;
-    // }
+    public TileDefinition GetTile(TileDefinitionId id)
+    {
+        if (!_tiles.TryGetValue(id, out TileDefinition? tile))
+            throw new KeyNotFoundException($"Tile '{id}' not found in content database");
+        return tile;
+    }
 
     /// <summary>
     /// Tries to get a tile definition by ID.
     /// </summary>
-    // public bool TryGetTile(TileDefinitionId id, out TileDefinition? tile)
-    // {
-    //     return _tiles.TryGetValue(id, out tile);
-    // }
+    public bool TryGetTile(TileDefinitionId id, out TileDefinition? tile)
+    {
+        return _tiles.TryGetValue(id, out tile);
+    }
 
     /// <summary>
     /// Adds a tile definition to the database.
     /// </summary>
-    // public void AddTile(TileDefinition tile)
-    // {
-    //     ArgumentNullException.ThrowIfNull(tile);
-    //     _tiles[tile.Id] = tile;
-    //     LoggerProvider.Current.Trace("Added tile: {0}", tile.Id);
-    // }
+    public void AddTile(TileDefinition tile)
+    {
+        ArgumentNullException.ThrowIfNull(tile);
+        _tiles[tile.Id] = tile;
+        Log.Trace($"Added tile: {tile.Id}");
+    }
 
     /// <summary>
     /// Adds multiple tile definitions to the database.
     /// </summary>
-    // public void AddTiles(IEnumerable<TileDefinition> tiles)
-    // {
-    //     foreach (TileDefinition tile in tiles)
-    //     {
-    //         AddTile(tile);
-    //     }
-    // }
+    public void AddTiles(IEnumerable<TileDefinition> tiles)
+    {
+        foreach (TileDefinition tile in tiles)
+        {
+            AddTile(tile);
+        }
+    }
 
     /// <summary>
     /// Gets all tiles of a specific category.
     /// </summary>
-    // public IEnumerable<TileDefinition> GetTilesByCategory(TileCategory category)
-    // {
-    //     return _tiles.Values.Where(t => t.Category == category);
-    // }
+    public IEnumerable<TileDefinition> GetTilesByCategory(TileCategory category)
+    {
+        return _tiles.Values.Where(t => t.Category == category);
+    }
 
     #endregion
 

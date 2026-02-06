@@ -12,7 +12,7 @@ public sealed class ContentLoader
     private readonly CardParser _cardParser;
     // private readonly EnemyParser _enemyParser;
     // private readonly UnitParser _unitParser;
-    // private readonly TileParser _tileParser;
+    private readonly TileParser _tileParser;
     // private readonly ScenarioParser _scenarioParser;
     // private readonly HeroParser _heroParser;
 
@@ -24,7 +24,7 @@ public sealed class ContentLoader
         _cardParser = new CardParser();
         // _enemyParser = new EnemyParser();
         // _unitParser = new UnitParser();
-        // _tileParser = new TileParser();
+        _tileParser = new TileParser();
         // _scenarioParser = new ScenarioParser();
         // _heroParser = new HeroParser();
     }
@@ -45,11 +45,11 @@ public sealed class ContentLoader
         LoadCardsFromDirectory(Path.Combine(contentPath, "cards"), database);
         // LoadEnemiesFromDirectory(Path.Combine(contentPath, "enemies"), database);
         // LoadUnitsFromDirectory(Path.Combine(contentPath, "units"), database);
-        // LoadTilesFromDirectory(Path.Combine(contentPath, "tiles"), database);
+        LoadTilesFromDirectory(Path.Combine(contentPath, "tiles"), database);
         // LoadScenariosFromDirectory(Path.Combine(contentPath, "scenarios"), database);
         // LoadHeroesFromDirectory(Path.Combine(contentPath, "heroes"), database);
 
-        Log.Info($"Content loading complete: {database.Cards.Count} cards loaded");
+        Log.Info($"Content loading complete: {database.Cards.Count} cards, {database.Tiles.Count} tiles");
         // Log.Info(
         //     "Content loaded: {0} cards, {1} enemies, {2} units, {3} tiles, {4} scenarios, {5} heroes",
         //     database.Cards.Count,
@@ -150,33 +150,32 @@ public sealed class ContentLoader
     //     }
     // }
 
-    // TODO: Map
     /// <summary>
     /// Loads tile definitions from a directory.
     /// </summary>
-    // public void LoadTilesFromDirectory(string directoryPath, ContentDatabase database)
-    // {
-    //     if (!Directory.Exists(directoryPath))
-    //     {
-    //         LoggerProvider.Current.Debug("Tiles directory not found: {0}", directoryPath);
-    //         return;
-    //     }
-    //
-    //     foreach (string file in Directory.GetFiles(directoryPath, "*.json"))
-    //     {
-    //         try
-    //         {
-    //             IReadOnlyList<TileDefinition> tiles = _tileParser.ParseFile(file);
-    //             database.AddTiles(tiles);
-    //             LoggerProvider.Current.Debug("Loaded {0} tiles from {1}", tiles.Count, Path.GetFileName(file));
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             LoggerProvider.Current.Error("Failed to load tiles from {0}: {1}", file, ex.Message);
-    //             throw new ContentParseException($"Failed to parse tile file '{file}': {ex.Message}", ex);
-    //         }
-    //     }
-    // }
+    public void LoadTilesFromDirectory(string directoryPath, ContentDatabase database)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            Log.Debug($"Tiles directory not found: {directoryPath}");
+            return;
+        }
+    
+        foreach (string file in Directory.GetFiles(directoryPath, "*.json"))
+        {
+            try
+            {
+                IReadOnlyList<TileDefinition> tiles = _tileParser.ParseFile(file);
+                database.AddTiles(tiles);
+                Log.Debug($"Loaded {tiles.Count} tiles from {Path.GetFileName(file)}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load tiles from {file}: {ex.Message}");
+                throw new ContentParseException($"Failed to parse tile file '{file}': {ex.Message}", ex);
+            }
+        }
+    }
 
     // TODO: Scenarios
     /// <summary>
@@ -332,14 +331,13 @@ public sealed class ContentLoader
     //     return _unitParser.ParseJson(json);
     // }
 
-    // TODO: Map
     /// <summary>
     /// Loads tiles directly from JSON string.
     /// </summary>
-    // public IReadOnlyList<TileDefinition> LoadTilesFromJson(string json)
-    // {
-    //     return _tileParser.ParseJson(json);
-    // }
+    public IReadOnlyList<TileDefinition> LoadTilesFromJson(string json)
+    {
+        return _tileParser.ParseJson(json);
+    }
 
     // TODO: Scenarios
     /// <summary>
