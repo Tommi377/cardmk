@@ -13,12 +13,16 @@ public partial class WorldMap : Node2D
     /// <summary>
     /// Reference to the TileMapLayer for terrain rendering.
     /// </summary>
-    [Export]
-    public TileMapLayer? TileMapLayer { get; set; }
+    [Export] private TileMapLayer? _groundLayer;
+
+    /// <summary>
+    /// Reference to the TileMapLayer for location rendering.
+    /// </summary>
+    [Export] private TileMapLayer? _locationLayer;
 
     private MapState? _mapState;
     private EventBus? _eventBus;
-    private readonly Dictionary<HexCoord, Node2D> _locationMarkers = new();
+    private readonly Dictionary<HexCoord, LocationType> _locations = new();
     private readonly Dictionary<HexCoord, Node2D> _enemyMarkers = new();
 
     // Atlas source ID in the TileSet
@@ -55,7 +59,7 @@ public partial class WorldMap : Node2D
     /// </summary>
     public void RenderFullMap()
     {
-        if (_mapState == null || TileMapLayer == null)
+        if (_mapState == null || _groundLayer == null)
         {
             Log.Error("WorldMap: Cannot render - MapState or TileMapLayer is null");
             return;
@@ -64,8 +68,10 @@ public partial class WorldMap : Node2D
         Log.Debug($"WorldMap: Rendering full map with {_mapState.CellCount} cells");
 
         // Clear existing tiles and markers
-        TileMapLayer.Clear();
-        ClearMarkers();
+        _groundLayer.Clear();
+        _locationLayer?.Clear();
+        _locations.Clear();
+        ClearEnemyMarkers();
 
         // Render all cells
         foreach (MapTile tile in _mapState.Tiles.Values)
@@ -79,7 +85,7 @@ public partial class WorldMap : Node2D
     /// </summary>
     private void RenderTile(MapTile tile)
     {
-        if (TileMapLayer == null) return;
+        if (_groundLayer == null) return;
 
         foreach (var kvp in tile.Cells)
         {
@@ -93,7 +99,7 @@ public partial class WorldMap : Node2D
             Vector2I atlasCoord = GetTerrainAtlasCoord(cell.Terrain);
 
             // Set the tile
-            TileMapLayer.SetCell(tileCoord, AtlasSourceId, atlasCoord);
+            _groundLayer.SetCell(tileCoord, AtlasSourceId, atlasCoord);
 
             // Add markers for locations and enemies
             if (cell.HasLocation)
@@ -157,49 +163,59 @@ public partial class WorldMap : Node2D
     }
 
     /// <summary>
+    /// Gets the atlas coordinates for a location type.
+    /// Maps LocationType to the tile index in the atlas.
+    /// </summary>
+    internal static Vector2I GetLocationAtlasCoord(LocationType locationType)
+    {
+        return locationType switch
+        {
+            LocationType.Village => new Vector2I(0, 1),
+            LocationType.Monastery => new Vector2I(1, 1),
+            LocationType.Keep => new Vector2I(2, 1),
+            LocationType.MageTower => new Vector2I(3, 1),
+            LocationType.Dungeon => new Vector2I(4, 1),
+            LocationType.Tomb => new Vector2I(5, 1),
+            LocationType.AncientRuins => new Vector2I(6, 1),
+            LocationType.CrystalMine => new Vector2I(7, 1),
+            LocationType.MagicalGlade => new Vector2I(8, 1),
+            LocationType.SpawningGround => new Vector2I(9, 1),
+            LocationType.MonsterDen => new Vector2I(9, 0),
+            LocationType.City => new Vector2I(0, 0), // Fallback - city rendered via terrain
+            _ => new Vector2I(0, 0)
+        };
+    }
+
+    /// <summary>
     /// Gets the world pixel position for a hex coordinate.
     /// </summary>
     public Vector2 HexToWorldPosition(HexCoord hex)
     {
-        if (TileMapLayer == null)
+        if (_groundLayer == null)
         {
             Log.Warning("WorldMap: TileMapLayer is null, returning zero position");
             return Vector2.Zero;
         }
 
         Vector2I tileCoord = HexToTileMapCoord(hex);
-        return TileMapLayer.MapToLocal(tileCoord);
+        return _groundLayer.MapToLocal(tileCoord);
     }
 
     /// <summary>
-    /// Adds a location marker at the specified hex.
+    /// Adds a location marker at the specified hex using the location tile layer.
     /// </summary>
     private void AddLocationMarker(HexCoord coord, LocationType locationType)
     {
-        if (_locationMarkers.ContainsKey(coord)) return;
+        if (_locations.ContainsKey(coord)) return;
 
-        // Create a simple visual marker for locations
-        var marker = new Sprite2D
+        if (_locationLayer != null)
         {
-            Position = HexToWorldPosition(coord),
-            Modulate = new Color(1, 1, 0, 0.8f), // Yellow tint
-            ZIndex = 1
-        };
+            Vector2I tileCoord = HexToTileMapCoord(coord);
+            Vector2I atlasCoord = GetLocationAtlasCoord(locationType);
+            _locationLayer.SetCell(tileCoord, AtlasSourceId, atlasCoord);
+        }
 
-        // Add a label showing the location type
-        var label = new Label
-        {
-            Text = "★",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Position = new Vector2(-10, -20)
-        };
-        label.AddThemeColorOverride("font_color", new Color(1, 0.8f, 0));
-        label.AddThemeFontSizeOverride("font_size", 24);
-        marker.AddChild(label);
-
-        AddChild(marker);
-        _locationMarkers[coord] = marker;
+        _locations[coord] = locationType;
 
         Log.Trace($"WorldMap: Added location marker at {coord} for {locationType}");
     }
@@ -243,24 +259,6 @@ public partial class WorldMap : Node2D
     }
 
     /// <summary>
-    /// Clears all markers from the map.
-    /// </summary>
-    private void ClearMarkers()
-    {
-        foreach (var marker in _locationMarkers.Values)
-        {
-            marker.QueueFree();
-        }
-        _locationMarkers.Clear();
-
-        foreach (var marker in _enemyMarkers.Values)
-        {
-            marker.QueueFree();
-        }
-        _enemyMarkers.Clear();
-    }
-
-    /// <summary>
     /// Handles tile placement events to incrementally update the visual.
     /// </summary>
     private void OnTilePlaced(EvtTilePlaced evt)
@@ -270,22 +268,22 @@ public partial class WorldMap : Node2D
     }
 
     /// <summary>
+    /// Clears all enemy markers from the map.
+    /// </summary>
+    private void ClearEnemyMarkers()
+    {
+        foreach (Node2D marker in _enemyMarkers.Values)
+        {
+            marker.QueueFree();
+        }
+        _enemyMarkers.Clear();
+    }
+
+    /// <summary>
     /// Updates enemy markers when enemies are added or removed.
     /// </summary>
     public void UpdateEnemyMarker(HexCoord coord, int newCount)
     {
         AddEnemyMarker(coord, newCount);
-    }
-
-    /// <summary>
-    /// Removes a location marker (e.g., when location is cleared).
-    /// </summary>
-    public void RemoveLocationMarker(HexCoord coord)
-    {
-        if (_locationMarkers.TryGetValue(coord, out Node2D? marker))
-        {
-            marker.QueueFree();
-            _locationMarkers.Remove(coord);
-        }
     }
 }
