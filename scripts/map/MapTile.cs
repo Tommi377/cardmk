@@ -76,7 +76,7 @@ public sealed class MapTile
             HexCoord localCoord = kvp.Key;
             TileHexDefinition hexDef = kvp.Value;
 
-            HexCoord rotatedOffset = RotateOffset(localCoord, Rotation);
+            HexCoord rotatedOffset = localCoord.RotateOffset(Rotation);
             HexCoord worldPosition = CenterPosition + rotatedOffset;
 
             var cell = new HexCell(
@@ -87,62 +87,6 @@ public sealed class MapTile
 
             _cells[worldPosition] = cell;
         }
-
-        // If definition has no hexes, create a standard 7-hex layout
-        if (_cells.Count == 0)
-        {
-            CreateDefaultCells();
-        }
-    }
-
-    /// <summary>
-    /// Creates a default 7-hex tile layout when definition has no hexes.
-    /// </summary>
-    private void CreateDefaultCells()
-    {
-        var offsets = new List<HexCoord>
-        {
-            new(0, 0),  // Center
-            new(1, 0), new(0, 1), new(-1, 1),  // East neighbors
-            new(-1, 0), new(0, -1), new(1, -1)  // West neighbors
-        };
-
-        foreach (HexCoord offset in offsets)
-        {
-            HexCoord rotatedOffset = RotateOffset(offset, Rotation);
-            HexCoord worldPosition = CenterPosition + rotatedOffset;
-
-            var cell = new HexCell(
-                worldPosition,
-                TerrainType.Plains,
-                TileId);
-
-            _cells[worldPosition] = cell;
-        }
-    }
-
-    /// <summary>
-    /// Rotates a hex offset by the specified rotation (0-5).
-    /// </summary>
-    private static HexCoord RotateOffset(HexCoord offset, int rotation)
-    {
-        if (rotation == 0) return offset;
-
-        // Cube coordinate rotation
-        int q = offset.Q;
-        int r = offset.R;
-        int s = -q - r;
-
-        for (int i = 0; i < rotation; i++)
-        {
-            int newQ = -r;
-            int newR = -s;
-            s = -q;
-            q = newQ;
-            r = newR;
-        }
-
-        return new HexCoord(q, r);
     }
 
     /// <summary>
@@ -150,7 +94,7 @@ public sealed class MapTile
     /// </summary>
     public HexCell? GetCell(HexCoord worldPosition)
     {
-        return _cells.TryGetValue(worldPosition, out HexCell? cell) ? cell : null;
+        return _cells.GetValueOrDefault(worldPosition);
     }
 
     /// <summary>

@@ -156,11 +156,10 @@ public partial class GameManager : Node
     /// <summary>
     /// Explores a new tile at the given edge position.
     /// </summary>
-    /// <param name="edgeCoord">An existing hex at the map edge.</param>
-    /// <param name="direction">Direction to place the new tile (0-5).</param>
+    /// <param name="macroCoord">An existing map tile coordinate.</param>
     /// <param name="category">Optional: force a specific tile category.</param>
     /// <returns>Result of the tile placement.</returns>
-    public TilePlacementResult? ExploreTile(HexCoord edgeCoord, int direction, TileCategory? category = null)
+    public TilePlacementResult? ExploreTile(HexCoord macroCoord, TileCategory? category = null)
     {
         if (_mapGenerator == null || _eventBus == null)
         {
@@ -168,9 +167,9 @@ public partial class GameManager : Node
             return null;
         }
 
-        var result = _mapGenerator.ExploreTile(edgeCoord, direction, category);
+        var result = _mapGenerator.ExploreTile(macroCoord, category);
 
-        if (result.IsValid && result.Tile != null)
+        if (result is { IsValid: true, Tile: not null })
         {
             // Publish tile placed event
             var evt = new EvtTilePlaced
@@ -183,7 +182,7 @@ public partial class GameManager : Node
             };
             _eventBus.Publish(evt);
 
-            Log.Info($"GameManager: Explored tile {result.Tile.Definition.Id} at direction {direction} from {edgeCoord}");
+            Log.Info($"GameManager: Explored tile {result.Tile.Definition.Id} at {macroCoord}");
         }
 
         return result;

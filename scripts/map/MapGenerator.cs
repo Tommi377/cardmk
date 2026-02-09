@@ -61,22 +61,16 @@ public sealed class MapGenerator
         TileDefinition startingTile = _rng.PickRandom(startingTiles);
 
         // Place at origin with no rotation
-        var result = _placementService.PlaceTileAtCenter(
-            Map,
-            startingTile,
-            new HexCoord(0, 0),
-            rotation: 0,
-            _rng);
+        TilePlacementResult result = _placementService.PlaceTile(Map, startingTile, new HexCoord(0, 0), _rng);
 
         if (result.IsValid)
         {
             Log.Info($"MapGenerator: Placed starting tile {startingTile.Id} at origin");
 
             // Place countryside tiles to the NE, NW, and W
-            // Direction indices: E=0, SE=1, SW=2, W=3, NW=4, NE=5
-            ExploreTile(new HexCoord(1, -1), direction: 5, TileCategory.Countryside); // NE
-            ExploreTile(new HexCoord(0, -1), direction: 4, TileCategory.Countryside); // NW
-            ExploreTile(new HexCoord(-1, 0), direction: 3, TileCategory.Countryside); // W
+            ExploreTile(new HexCoord(0, -1), TileCategory.Countryside); // NW
+            ExploreTile(new HexCoord(1, -1), TileCategory.Countryside); // NE
+            ExploreTile(new HexCoord(1, 0), TileCategory.Countryside); // E
         }
         else
         {
@@ -89,29 +83,15 @@ public sealed class MapGenerator
     /// <summary>
     /// Explores a new tile at the given edge position.
     /// </summary>
-    /// <param name="edgeCoord">An existing hex at the map edge.</param>
-    /// <param name="direction">Direction to place the new tile (0-5).</param>
+    /// <param name="macroCoord">Coordinate on the map tile scale.</param>
     /// <param name="category">Category of tile to draw. If null, automatically determined.</param>
     /// <returns>Result of the tile placement.</returns>
-    public TilePlacementResult ExploreTile(HexCoord edgeCoord, int direction, TileCategory? category = null)
+    public TilePlacementResult ExploreTile(HexCoord macroCoord, TileCategory? category = null)
     {
-        Log.Debug($"MapGenerator: Exploring tile at {edgeCoord} direction {direction}");
-
-        // Validate edge coordinate is on the map
-        if (!Map.HasHex(edgeCoord))
-        {
-            return TilePlacementResult.Invalid($"Edge coordinate {edgeCoord} is not on the map");
-        }
-
-        // Validate the direction leads off the map
-        HexCoord neighbor = edgeCoord.Neighbor(direction);
-        if (Map.HasHex(neighbor))
-        {
-            return TilePlacementResult.Invalid($"Direction {direction} from {edgeCoord} does not lead off the map");
-        }
+        Log.Debug($"MapGenerator: Exploring tile at {macroCoord.ToMicroCoord()}({macroCoord}) direction");
 
         // Determine which deck to draw from
-        TileCategory tileCategory = category ?? DetermineTileCategory(edgeCoord);
+        TileCategory tileCategory = category ?? DetermineTileCategory(macroCoord);
         TileDefinition? tileDef = DrawTile(tileCategory);
 
         if (tileDef == null)
@@ -124,13 +104,12 @@ public sealed class MapGenerator
         var result = _placementService.PlaceTile(
             Map,
             tileDef,
-            edgeCoord,
-            direction,
+            macroCoord,
             _rng);
 
         if (result.IsValid)
         {
-            Log.Info($"MapGenerator: Explored tile {tileDef.Id} at direction {direction} from {edgeCoord}");
+            Log.Info($"MapGenerator: Explored tile {tileDef.Id} at ({macroCoord})");
         }
 
         return result;
@@ -197,9 +176,9 @@ public sealed class MapGenerator
     /// - Near origin (distance 0-2): Countryside
     /// - Far from origin (distance 3+): Core
     /// </summary>
-    private TileCategory DetermineTileCategory(HexCoord edgeCoord)
+    private TileCategory DetermineTileCategory(HexCoord macroCoord)
     {
-        int distance = edgeCoord.DistanceTo(new HexCoord(0, 0));
+        int distance = macroCoord.DistanceTo(new HexCoord(0, 0));
 
         // Simple rule: countryside for first 2 rings, then core
         if (distance <= 2)

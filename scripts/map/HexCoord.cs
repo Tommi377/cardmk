@@ -82,6 +82,34 @@ public readonly record struct HexCoord(int Q, int R) : IEquatable<HexCoord>
     public static HexCoord operator +(HexCoord a, HexCoord b) => new(a.Q + b.Q, a.R + b.R);
     public static HexCoord operator -(HexCoord a, HexCoord b) => new(a.Q - b.Q, a.R - b.R);
     public static HexCoord operator *(HexCoord coord, int scalar) => new(coord.Q * scalar, coord.R * scalar);
+    
+    /// <summary>
+    /// Rotates a hex offset (e.g. around origin) by the specified rotation (0-5).
+    /// </summary>
+    public HexCoord RotateOffset(int rotation)
+    {
+        if (rotation == 0) return this; 
+        int q = Q;
+        int r = R;
+        int s = -q - r;
+
+        for (int i = 0; i < rotation; i++)
+        {
+            int newQ = -r;
+            int newR = -s;
+            s = -q;
+            q = newQ;
+            r = newR;
+        }
+
+        return new HexCoord(q, r);
+    }
+    
+    /// <summary>
+    /// Converts this hex coordinate to a micro coordinate for tile placement.
+    /// The HexCoord must be in macro coordinates (center of tile), and this will convert it to micro coordinates (cell positions).
+    /// </summary>
+    public HexCoord ToMicroCoord() => new(2 * Q - R, Q + 3 * R);
 
     public override int GetHashCode() => HashCode.Combine(Q, R);
 
