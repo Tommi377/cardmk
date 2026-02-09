@@ -21,7 +21,7 @@ public sealed class HexCell
     /// <summary>
     /// Location ID if this cell contains a location. Null otherwise.
     /// </summary>
-    public LocationId? LocationId { get; init; }
+    public LocationType? LocationType { get; init; }
 
     /// <summary>
     /// The tile this cell belongs to.
@@ -54,7 +54,7 @@ public sealed class HexCell
     /// <summary>
     /// Returns true if this cell has a location.
     /// </summary>
-    public bool HasLocation => LocationId.HasValue;
+    public bool HasLocation => LocationType.HasValue;
 
     /// <summary>
     /// Returns true if there are enemies at this cell.
@@ -74,16 +74,16 @@ public sealed class HexCell
     /// <summary>
     /// Creates a new HexCell with the specified properties.
     /// </summary>
-    public HexCell(HexCoord worldCoord, TerrainType terrain, TileId tileId, LocationId? locationId = null)
+    public HexCell(HexCoord worldCoord, TerrainType terrain, TileId tileId, LocationType? locationType = null)
     {
         WorldCoord = worldCoord;
         Terrain = terrain;
         TileId = tileId;
-        LocationId = locationId;
+        LocationType = locationType;
     }
 
     public override string ToString() =>
-        $"HexCell({WorldCoord}, {Terrain}{(HasLocation ? $", {LocationId}" : "")})";
+        $"HexCell({WorldCoord}, {Terrain}{(HasLocation ? $", {LocationType}" : "")})";
 }
 
 /// <summary>
@@ -142,19 +142,25 @@ public enum LocationType
     /// <summary>Dungeon - challenge for artifacts.</summary>
     Dungeon,
 
+    /// <summary>Tomb - advanced challenge for artifacts.</summary>
+    Tomb,
+
     /// <summary>Ancient Ruins - special challenges.</summary>
     AncientRuins,
 
     /// <summary>City - final objective locations.</summary>
     City,
 
-    /// <summary>Portal - special movement location.</summary>
-    Portal,
-
     /// <summary>Crystal Mine - gain crystals.</summary>
     CrystalMine,
+    
+    /// <summary>Magical Glade - Heal and gain mana.</summary>
+    MagicalGlade,
 
-    /// <summary>Spawning Ground - enemy respawn point.</summary>
+    /// <summary>Monster Den - Fight enemies for rewards.</summary>
+    MonsterDen,
+    
+    /// <summary>Spawning Ground - Fight harder enemies for rewards.</summary>
     SpawningGround
 }
 
@@ -163,11 +169,6 @@ public enum LocationType
 /// </summary>
 public sealed class LocationDefinition
 {
-    /// <summary>
-    /// Unique identifier for this location type.
-    /// </summary>
-    public LocationId Id { get; init; }
-
     /// <summary>
     /// Type of location.
     /// </summary>

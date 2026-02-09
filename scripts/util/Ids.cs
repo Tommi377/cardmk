@@ -81,16 +81,6 @@ public readonly record struct TileDefinitionId(string Value)
 }
 
 /// <summary>
-/// Strongly-typed ID for a location on the map (village, monastery, etc.).
-/// </summary>
-public readonly record struct LocationId(string Value)
-{
-    public static implicit operator string(LocationId id) => id.Value;
-    public static implicit operator LocationId(string value) => new(value);
-    public override string ToString() => Value;
-}
-
-/// <summary>
 /// Strongly-typed ID for a unit definition.
 /// </summary>
 public readonly record struct UnitId(string Value)

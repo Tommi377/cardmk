@@ -68,7 +68,7 @@ public partial class WorldMap : Node2D
         ClearMarkers();
 
         // Render all cells
-        foreach (var tile in _mapState.Tiles.Values)
+        foreach (MapTile tile in _mapState.Tiles.Values)
         {
             RenderTile(tile);
         }
@@ -98,7 +98,7 @@ public partial class WorldMap : Node2D
             // Add markers for locations and enemies
             if (cell.HasLocation)
             {
-                AddLocationMarker(worldCoord, cell.LocationId!.Value);
+                AddLocationMarker(worldCoord, cell.LocationType!.Value);
             }
 
             if (cell.HasEnemies)
@@ -174,7 +174,7 @@ public partial class WorldMap : Node2D
     /// <summary>
     /// Adds a location marker at the specified hex.
     /// </summary>
-    private void AddLocationMarker(HexCoord coord, LocationId locationId)
+    private void AddLocationMarker(HexCoord coord, LocationType locationType)
     {
         if (_locationMarkers.ContainsKey(coord)) return;
 
@@ -201,7 +201,7 @@ public partial class WorldMap : Node2D
         AddChild(marker);
         _locationMarkers[coord] = marker;
 
-        Log.Trace($"WorldMap: Added location marker at {coord} for {locationId}");
+        Log.Trace($"WorldMap: Added location marker at {coord} for {locationType}");
     }
 
     /// <summary>

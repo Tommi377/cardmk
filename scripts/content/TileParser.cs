@@ -77,7 +77,7 @@ public sealed class TileParser
         return new TileHexDefinition
         {
             Terrain = ParseTerrainType(dto.Terrain),
-            LocationId = string.IsNullOrEmpty(dto.LocationId) ? null! : new LocationId(dto.LocationId),
+            LocationType = string.IsNullOrEmpty(dto.LocationType) ? null : ParseLocationType(dto.LocationType),
             SpawnCategory = string.IsNullOrEmpty(dto.SpawnCategory) ? null : ParseEnemyCategory(dto.SpawnCategory),
         };
     }
@@ -103,6 +103,23 @@ public sealed class TileParser
         "lake" => TerrainType.Lake,
         "city" => TerrainType.City,
         _ => TerrainType.Plains
+    };
+    
+    private static LocationType ParseLocationType(string? location) => location?.ToLowerInvariant() switch
+    {
+        "village" => LocationType.Village,
+        "monastery" => LocationType.Monastery,
+        "keep" => LocationType.Keep,
+        "mage_tower" => LocationType.MageTower,
+        "city" => LocationType.City,
+        "dungeon" => LocationType.Dungeon,
+        "tomb" => LocationType.Tomb,
+        "ancient_ruins" => LocationType.AncientRuins,
+        "crystal_mine" => LocationType.CrystalMine,
+        "magical_glade" => LocationType.MagicalGlade,
+        "monster_den" => LocationType.MonsterDen,
+        "spawning_ground" => LocationType.SpawningGround,
+        _ => LocationType.Village
     };
 
     private static EnemyCategory ParseEnemyCategory(string? category) => category?.ToLowerInvariant() switch
@@ -152,8 +169,8 @@ public sealed class TileParser
         [JsonPropertyName("terrain")]
         public string? Terrain { get; set; }
 
-        [JsonPropertyName("locationId")]
-        public string? LocationId { get; set; }
+        [JsonPropertyName("locationType")]
+        public string? LocationType { get; set; }
 
         [JsonPropertyName("spawnCategory")]
         public string? SpawnCategory { get; set; }

@@ -73,9 +73,9 @@ public sealed class TileHexDefinition
     public TerrainType Terrain { get; init; }
 
     /// <summary>
-    /// Location ID if this hex contains a location (village, keep, etc.).
+    /// LocationType if this hex contains a location (village, keep, etc.).
     /// </summary>
-    public LocationId? LocationId { get; init; }
+    public LocationType? LocationType { get; init; }
 
     /// <summary>
     /// Enemy category that spawns here when tile is revealed.
@@ -85,7 +85,7 @@ public sealed class TileHexDefinition
     /// <summary>
     /// Returns true if this hex has a location.
     /// </summary>
-    public bool HasLocation => LocationId.HasValue;
+    public bool HasLocation => LocationType.HasValue;
 
     /// <summary>
     /// Returns true if enemies spawn here.

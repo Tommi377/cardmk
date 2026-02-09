@@ -83,7 +83,7 @@ public sealed class MapTile
                 worldPosition,
                 hexDef.Terrain,
                 TileId,
-                hexDef.LocationId);
+                hexDef.LocationType);
 
             _cells[worldPosition] = cell;
         }
