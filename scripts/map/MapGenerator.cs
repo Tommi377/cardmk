@@ -71,6 +71,12 @@ public sealed class MapGenerator
         if (result.IsValid)
         {
             Log.Info($"MapGenerator: Placed starting tile {startingTile.Id} at origin");
+
+            // Place countryside tiles to the NE, NW, and W
+            // Direction indices: E=0, SE=1, SW=2, W=3, NW=4, NE=5
+            ExploreTile(new HexCoord(1, -1), direction: 5, TileCategory.Countryside); // NE
+            ExploreTile(new HexCoord(0, -1), direction: 4, TileCategory.Countryside); // NW
+            ExploreTile(new HexCoord(-1, 0), direction: 3, TileCategory.Countryside); // W
         }
         else
         {

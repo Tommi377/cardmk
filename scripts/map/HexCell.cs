@@ -24,11 +24,6 @@ public sealed class HexCell
     public LocationId? LocationId { get; init; }
 
     /// <summary>
-    /// Whether this cell is coastal (adjacent to water).
-    /// </summary>
-    public bool IsCoastal { get; init; }
-
-    /// <summary>
     /// The tile this cell belongs to.
     /// </summary>
     public TileId TileId { get; init; }
@@ -74,19 +69,17 @@ public sealed class HexCell
     /// <summary>
     /// Returns true if this terrain is normally impassable.
     /// </summary>
-    public bool IsImpassable => Terrain is TerrainType.Mountain or TerrainType.Lake or TerrainType.Ocean;
+    public bool IsImpassable => Terrain is TerrainType.Mountain or TerrainType.Lake;
 
     /// <summary>
     /// Creates a new HexCell with the specified properties.
     /// </summary>
-    public HexCell(HexCoord worldCoord, TerrainType terrain, TileId tileId,
-        LocationId? locationId = null, bool isCoastal = false)
+    public HexCell(HexCoord worldCoord, TerrainType terrain, TileId tileId, LocationId? locationId = null)
     {
         WorldCoord = worldCoord;
         Terrain = terrain;
         TileId = tileId;
         LocationId = locationId;
-        IsCoastal = isCoastal;
     }
 
     public override string ToString() =>

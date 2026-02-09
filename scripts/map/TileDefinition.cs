@@ -78,19 +78,9 @@ public sealed class TileHexDefinition
     public LocationId? LocationId { get; init; }
 
     /// <summary>
-    /// Whether this hex is coastal (adjacent to lake/ocean).
-    /// </summary>
-    public bool IsCoastal { get; init; }
-
-    /// <summary>
     /// Enemy category that spawns here when tile is revealed.
     /// </summary>
     public EnemyCategory? SpawnCategory { get; init; }
-
-    /// <summary>
-    /// Number of enemies to spawn (if SpawnCategory is set).
-    /// </summary>
-    public int SpawnCount { get; init; }
 
     /// <summary>
     /// Returns true if this hex has a location.
@@ -100,5 +90,5 @@ public sealed class TileHexDefinition
     /// <summary>
     /// Returns true if enemies spawn here.
     /// </summary>
-    public bool HasSpawn => SpawnCategory.HasValue && SpawnCount > 0;
+    public bool HasSpawn => SpawnCategory.HasValue;
 }

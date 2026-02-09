@@ -147,9 +147,8 @@ public partial class WorldMap : Node2D
             TerrainType.Swamp => 3,
             TerrainType.Wasteland => 4,
             TerrainType.Desert => 5,
-            TerrainType.Mountain => 6,
-            TerrainType.Lake => 7,
-            TerrainType.Ocean => 7,  // Reuse lake for ocean
+            TerrainType.Lake => 6,
+            TerrainType.Mountain => 7,
             TerrainType.City => 0,   // Fallback to plains for city
             _ => 0
         };

@@ -351,25 +351,22 @@ public sealed class TilePlacementService
         {
             TileHexDefinition hexDef = kvp.Value;
 
-            if (hexDef.SpawnCategory.HasValue && hexDef.SpawnCount > 0)
+            if (hexDef.SpawnCategory.HasValue)
             {
                 HexCoord localOffset = kvp.Key;
                 HexCoord worldPosition = tile.CenterPosition + RotateOffset(localOffset, tile.Rotation);
 
-                for (int i = 0; i < hexDef.SpawnCount; i++)
-                {
-                    EnemyId enemyId = SelectEnemyFromCategory(hexDef.SpawnCategory.Value, rng, enemySelector);
-                    var instanceId = new EnemyInstanceId(_nextEnemyInstanceId++);
+                EnemyId enemyId = SelectEnemyFromCategory(hexDef.SpawnCategory.Value, rng, enemySelector);
+                var instanceId = new EnemyInstanceId(_nextEnemyInstanceId++);
 
-                    spawned.Add(new SpawnedEnemyInfo(
-                        instanceId,
-                        enemyId,
-                        worldPosition,
-                        hexDef.SpawnCategory.Value
-                    ));
+                spawned.Add(new SpawnedEnemyInfo(
+                    instanceId,
+                    enemyId,
+                    worldPosition,
+                    hexDef.SpawnCategory.Value
+                ));
 
-                    Log.Debug($"TilePlacementService: Spawned enemy {instanceId} ({enemyId}) at {worldPosition}");
-                }
+                Log.Debug($"TilePlacementService: Spawned enemy {instanceId} ({enemyId}) at {worldPosition}");
             }
         }
 

@@ -77,10 +77,8 @@ public sealed class TileParser
         return new TileHexDefinition
         {
             Terrain = ParseTerrainType(dto.Terrain),
-            LocationId = string.IsNullOrEmpty(dto.LocationId) ? null : new LocationId(dto.LocationId),
-            IsCoastal = dto.IsCoastal ?? false,
+            LocationId = string.IsNullOrEmpty(dto.LocationId) ? null! : new LocationId(dto.LocationId),
             SpawnCategory = string.IsNullOrEmpty(dto.SpawnCategory) ? null : ParseEnemyCategory(dto.SpawnCategory),
-            SpawnCount = dto.SpawnCount ?? 0
         };
     }
 
@@ -103,7 +101,6 @@ public sealed class TileParser
         "desert" => TerrainType.Desert,
         "mountain" => TerrainType.Mountain,
         "lake" => TerrainType.Lake,
-        "ocean" => TerrainType.Ocean,
         "city" => TerrainType.City,
         _ => TerrainType.Plains
     };
@@ -158,13 +155,7 @@ public sealed class TileParser
         [JsonPropertyName("locationId")]
         public string? LocationId { get; set; }
 
-        [JsonPropertyName("isCoastal")]
-        public bool? IsCoastal { get; set; }
-
         [JsonPropertyName("spawnCategory")]
         public string? SpawnCategory { get; set; }
-
-        [JsonPropertyName("spawnCount")]
-        public int? SpawnCount { get; set; }
     }
 }

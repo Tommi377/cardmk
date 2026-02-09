@@ -40,6 +40,38 @@ public class MapGeneratorTests
             Hexes = CreateStandardHexLayout(TerrainType.Hills)
         });
 
+        db.AddTile(new TileDefinition
+        {
+            Id = new TileDefinitionId("tile.countryside_03"),
+            Category = TileCategory.Countryside,
+            NameKey = new LocalizationKey("tile.countryside_03.name"),
+            Hexes = CreateStandardHexLayout(TerrainType.Plains)
+        });
+
+        db.AddTile(new TileDefinition
+        {
+            Id = new TileDefinitionId("tile.countryside_04"),
+            Category = TileCategory.Countryside,
+            NameKey = new LocalizationKey("tile.countryside_04.name"),
+            Hexes = CreateStandardHexLayout(TerrainType.Desert)
+        });
+
+        db.AddTile(new TileDefinition
+        {
+            Id = new TileDefinitionId("tile.countryside_05"),
+            Category = TileCategory.Countryside,
+            NameKey = new LocalizationKey("tile.countryside_05.name"),
+            Hexes = CreateStandardHexLayout(TerrainType.Wasteland)
+        });
+
+        db.AddTile(new TileDefinition
+        {
+            Id = new TileDefinitionId("tile.countryside_06"),
+            Category = TileCategory.Countryside,
+            NameKey = new LocalizationKey("tile.countryside_06.name"),
+            Hexes = CreateStandardHexLayout(TerrainType.Forest)
+        });
+
         // Add core tiles
         db.AddTile(new TileDefinition
         {
@@ -108,8 +140,8 @@ public class MapGeneratorTests
         // Act
         generator.InitializeMap();
 
-        // Assert
-        Assert.Equal(2, generator.GetDeckCount(TileCategory.Countryside));
+        // Assert - InitializeMap places 3 countryside tiles (NE, NW, W), 6 total - 3 = 3 remaining
+        Assert.Equal(3, generator.GetDeckCount(TileCategory.Countryside));
         Assert.Equal(1, generator.GetDeckCount(TileCategory.Core));
         Assert.Equal(1, generator.GetDeckCount(TileCategory.City));
     }
@@ -125,9 +157,9 @@ public class MapGeneratorTests
         // Act
         generator.InitializeMap();
 
-        // Assert
+        // Assert - Starting tile (7 hexes) + 3 countryside tiles (21 hexes) = 28 total
         Assert.True(generator.Map.HasHex(new HexCoord(0, 0)));
-        Assert.Equal(7, generator.Map.CellCount); // Standard 7-hex tile
+        Assert.Equal(28, generator.Map.CellCount);
     }
 
     [Fact]

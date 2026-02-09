@@ -53,7 +53,6 @@ public enum TerrainType
     Desert,
     Mountain,
     Lake,
-    Ocean,
     City
 }
 

@@ -8,4 +8,4 @@ script = ExtResource("1_lycnq")
 _worldMap = NodePath("WorldMap")
 
 [node name="WorldMap" parent="." unique_id=888610345 instance=ExtResource("2_0drbn")]
-position = Vector2(544, 323)
+position = Vector2(800, 748)
