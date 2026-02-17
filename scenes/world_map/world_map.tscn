@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://c3ut82u5wtijs" path="res://Tilemap.png" id="1_xuggf"]
 [ext_resource type="Script" uid="uid://dvmftqijqyfil" path="res://scenes/world_map/WorldMap.cs" id="2_script"]
+[ext_resource type="Script" uid="uid://df4venhmbvqtd" path="res://scenes/world_map/HighlightLayer.cs" id="3_highlight"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pdx7j"]
 texture = ExtResource("1_xuggf")
@@ -26,19 +27,25 @@ texture_region_size = Vector2i(192, 384)
 2:1/0 = 0
 1:1/0 = 0
 0:1/0 = 0
+0:2/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_pro8c"]
 tile_shape = 3
 tile_size = Vector2i(190, 182)
 sources/0 = SubResource("TileSetAtlasSource_pdx7j")
 
-[node name="WorldMap" type="Node2D" unique_id=888610345 node_paths=PackedStringArray("_groundLayer", "_locationLayer")]
+[node name="WorldMap" type="Node2D" unique_id=888610345 node_paths=PackedStringArray("_groundLayer", "_locationLayer", "_highlightLayer")]
 script = ExtResource("2_script")
 _groundLayer = NodePath("GroundLayer")
 _locationLayer = NodePath("LocationLayer")
+_highlightLayer = NodePath("HighlightLayer")
 
 [node name="GroundLayer" type="TileMapLayer" parent="." unique_id=688759781]
 tile_set = SubResource("TileSet_pro8c")
 
 [node name="LocationLayer" type="TileMapLayer" parent="." unique_id=319437240]
 tile_set = SubResource("TileSet_pro8c")
+
+[node name="HighlightLayer" type="TileMapLayer" parent="." unique_id=1861318127]
+tile_set = SubResource("TileSet_pro8c")
+script = ExtResource("3_highlight")

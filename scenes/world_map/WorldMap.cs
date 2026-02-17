@@ -20,6 +20,11 @@ public partial class WorldMap : Node2D
     /// </summary>
     [Export] private TileMapLayer? _locationLayer;
 
+    /// <summary>
+    /// Reference to the HighlightLayer for mouse-hover highlighting.
+    /// </summary>
+    [Export] private HighlightLayer? _highlightLayer;
+
     private MapState? _mapState;
     private EventBus? _eventBus;
     private readonly Dictionary<HexCoord, LocationType> _locations = new();
@@ -40,6 +45,9 @@ public partial class WorldMap : Node2D
 
         // Subscribe to tile placement events
         _eventBus.Subscribe<EvtTilePlaced>(OnTilePlaced);
+
+        // Share MapState with highlight layer for cell validation
+        _highlightLayer?.SetMapState(_mapState);
 
         Log.Debug("WorldMap initialized");
 
@@ -277,6 +285,30 @@ public partial class WorldMap : Node2D
             marker.QueueFree();
         }
         _enemyMarkers.Clear();
+    }
+
+    /// <summary>
+    /// Enables hex highlighting under the mouse cursor.
+    /// </summary>
+    public void EnableHighlighting()
+    {
+        if (_highlightLayer != null)
+        {
+            _highlightLayer.HighlightingEnabled = true;
+            Log.Debug("WorldMap: Highlighting enabled");
+        }
+    }
+
+    /// <summary>
+    /// Disables hex highlighting and clears the current highlight.
+    /// </summary>
+    public void DisableHighlighting()
+    {
+        if (_highlightLayer != null)
+        {
+            _highlightLayer.HighlightingEnabled = false;
+            Log.Debug("WorldMap: Highlighting disabled");
+        }
     }
 
     /// <summary>
