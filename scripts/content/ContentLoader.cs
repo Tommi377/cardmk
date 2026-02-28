@@ -13,6 +13,7 @@ public sealed class ContentLoader
     // private readonly EnemyParser _enemyParser;
     // private readonly UnitParser _unitParser;
     private readonly TileParser _tileParser;
+    private readonly ContentValidationService _validationService;
     // private readonly ScenarioParser _scenarioParser;
     // private readonly HeroParser _heroParser;
 
@@ -25,6 +26,7 @@ public sealed class ContentLoader
         // _enemyParser = new EnemyParser();
         // _unitParser = new UnitParser();
         _tileParser = new TileParser();
+        _validationService = new ContentValidationService();
         // _scenarioParser = new ScenarioParser();
         // _heroParser = new HeroParser();
     }
@@ -59,10 +61,10 @@ public sealed class ContentLoader
         //     database.Scenarios.Count,
         //     database.Heroes.Count);
 
-        // if (validate)
-        // {
-        //     ValidateContentReferences(database);
-        // }
+        if (validate)
+        {
+            _validationService.Validate(database);
+        }
 
         return database;
     }

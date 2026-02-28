@@ -48,7 +48,7 @@ public sealed class TileParser
 
     private TileDefinition ParseTile(TileDto dto)
     {
-        if (string.IsNullOrEmpty(dto.Id))
+        if (string.IsNullOrWhiteSpace(dto.Id))
         {
             throw new ContentParseException("Tile is missing required 'id' field");
         }
@@ -56,42 +56,49 @@ public sealed class TileParser
         var hexes = new Dictionary<HexCoord, TileHexDefinition>();
         if (dto.Hexes != null)
         {
-            foreach (HexDto hexDto in dto.Hexes)
+            for (int i = 0; i < dto.Hexes.Count; i++)
             {
+                HexDto hexDto = dto.Hexes[i];
                 HexCoord coord = new(hexDto.Q ?? 0, hexDto.R ?? 0);
-                hexes[coord] = ParseHex(hexDto);
+                if (hexes.ContainsKey(coord))
+                {
+                    throw new ContentParseException($"Tile '{dto.Id}' has duplicate hex coordinate {coord}");
+                }
+
+                hexes[coord] = ParseHex(hexDto, dto.Id, i);
             }
         }
 
         return new TileDefinition
         {
             Id = new TileDefinitionId(dto.Id),
-            Category = ParseTileCategory(dto.Category),
+            Category = ParseTileCategory(dto.Category, dto.Id),
             NameKey = new LocalizationKey(dto.NameKey ?? $"{dto.Id}.name"),
             Hexes = hexes
         };
     }
 
-    private TileHexDefinition ParseHex(HexDto dto)
+    private TileHexDefinition ParseHex(HexDto dto, string tileId, int index)
     {
         return new TileHexDefinition
         {
-            Terrain = ParseTerrainType(dto.Terrain),
-            LocationType = string.IsNullOrEmpty(dto.LocationType) ? null : ParseLocationType(dto.LocationType),
-            SpawnCategory = string.IsNullOrEmpty(dto.SpawnCategory) ? null : ParseEnemyCategory(dto.SpawnCategory),
+            Terrain = ParseTerrainType(dto.Terrain, tileId, index),
+            LocationType = string.IsNullOrWhiteSpace(dto.LocationType) ? null : ParseLocationType(dto.LocationType, tileId, index),
+            SpawnCategory = string.IsNullOrWhiteSpace(dto.SpawnCategory) ? null : ParseEnemyCategory(dto.SpawnCategory, tileId, index),
         };
     }
 
-    private static TileCategory ParseTileCategory(string? category) => category?.ToLowerInvariant() switch
+    private static TileCategory ParseTileCategory(string? category, string tileId) => category?.ToLowerInvariant() switch
     {
         "starting" => TileCategory.Starting,
         "countryside" => TileCategory.Countryside,
         "core" => TileCategory.Core,
         "city" => TileCategory.City,
-        _ => TileCategory.Countryside
+        null or "" => throw new ContentParseException($"Tile '{tileId}' is missing required field 'category'"),
+        _ => throw new ContentParseException($"Tile '{tileId}' has unknown category '{category}'")
     };
 
-    private static TerrainType ParseTerrainType(string? terrain) => terrain?.ToLowerInvariant() switch
+    private static TerrainType ParseTerrainType(string? terrain, string tileId, int index) => terrain?.ToLowerInvariant() switch
     {
         "plains" => TerrainType.Plains,
         "forest" => TerrainType.Forest,
@@ -102,10 +109,11 @@ public sealed class TileParser
         "mountain" => TerrainType.Mountain,
         "lake" => TerrainType.Lake,
         "city" => TerrainType.City,
-        _ => TerrainType.Plains
+        null or "" => throw new ContentParseException($"Tile '{tileId}' hex[{index}] is missing required field 'terrain'"),
+        _ => throw new ContentParseException($"Tile '{tileId}' hex[{index}] has unknown terrain '{terrain}'")
     };
-    
-    private static LocationType ParseLocationType(string? location) => location?.ToLowerInvariant() switch
+
+    private static LocationType ParseLocationType(string? location, string tileId, int index) => location?.ToLowerInvariant() switch
     {
         "village" => LocationType.Village,
         "monastery" => LocationType.Monastery,
@@ -119,10 +127,10 @@ public sealed class TileParser
         "magical_glade" => LocationType.MagicalGlade,
         "monster_den" => LocationType.MonsterDen,
         "spawning_ground" => LocationType.SpawningGround,
-        _ => LocationType.Village
+        _ => throw new ContentParseException($"Tile '{tileId}' hex[{index}] has unknown locationType '{location}'")
     };
 
-    private static EnemyCategory ParseEnemyCategory(string? category) => category?.ToLowerInvariant() switch
+    private static EnemyCategory ParseEnemyCategory(string? category, string tileId, int index) => category?.ToLowerInvariant() switch
     {
         "marauding" => EnemyCategory.Marauding,
         "keep" => EnemyCategory.Keep,
@@ -130,12 +138,8 @@ public sealed class TileParser
         "dungeon" => EnemyCategory.Dungeon,
         "city" => EnemyCategory.City,
         "draconum" => EnemyCategory.Draconum,
-        _ => EnemyCategory.Marauding
+        _ => throw new ContentParseException($"Tile '{tileId}' hex[{index}] has unknown spawnCategory '{category}'")
     };
-
-    // ─────────────────────────────────────────────────────────────
-    // DTOs for JSON deserialization
-    // ─────────────────────────────────────────────────────────────
 
     private sealed class TileFileDto
     {

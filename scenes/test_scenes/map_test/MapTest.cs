@@ -1,5 +1,6 @@
 using Godot;
-using System;
+
+namespace RealMK;
 
 public partial class MapTest : Node2D
 {

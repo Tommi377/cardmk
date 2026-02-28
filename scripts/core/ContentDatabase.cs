@@ -375,9 +375,9 @@ public sealed class ContentDatabase
     public void Clear()
     {
         _cards.Clear();
+        _tiles.Clear();
         // _enemies.Clear();
         // _units.Clear();
-        // _tiles.Clear();
         // _scenarios.Clear();
         // _heroes.Clear();
         Log.Debug("ContentDatabase cleared");

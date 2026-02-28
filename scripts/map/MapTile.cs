@@ -7,21 +7,21 @@ namespace RealMK;
 /// </summary>
 public sealed class MapTile
 {
-    private static int _nextTileId = 1;
     private readonly Dictionary<HexCoord, HexCell> _cells;
 
     /// <summary>
     /// Creates a map tile from a definition placed at a specific position.
     /// </summary>
     /// <param name="definition">The tile definition.</param>
+    /// <param name="tileId">Runtime tile identifier assigned by the current session.</param>
     /// <param name="centerPosition">The center hex coordinate where this tile is placed.</param>
     /// <param name="rotation">Rotation of the tile (0-5, representing 60° increments).</param>
-    public MapTile(TileDefinition definition, HexCoord centerPosition, int rotation = 0)
+    public MapTile(TileDefinition definition, TileId tileId, HexCoord centerPosition, int rotation = 0)
     {
         Definition = definition;
         CenterPosition = centerPosition;
         Rotation = rotation % 6;
-        TileId = new TileId(_nextTileId++);
+        TileId = tileId;
         _cells = new Dictionary<HexCoord, HexCell>();
 
         // Initialize cells based on tile definition layout
@@ -59,11 +59,6 @@ public sealed class MapTile
     /// Runtime TileId for this placed tile instance.
     /// </summary>
     public TileId TileId { get; }
-
-    /// <summary>
-    /// Resets the tile ID counter (for testing only).
-    /// </summary>
-    internal static void ResetIdCounter() => _nextTileId = 1;
 
     /// <summary>
     /// Initializes the hex cells for this tile.

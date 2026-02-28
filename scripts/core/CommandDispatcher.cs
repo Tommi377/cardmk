@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace RealMK;
 
@@ -10,19 +9,18 @@ namespace RealMK;
 /// </summary>
 public sealed class CommandDispatcher
 {
-    // private readonly RulesEngine _engine;
+    private readonly ICommandRouter _router;
     private readonly EventBus _eventBus;
 
     /// <summary>
     /// Creates a new command dispatcher.
     /// </summary>
-    /// <param name="engine">The rules engine for validation and execution.</param>
+    /// <param name="router">Command router for validation and execution.</param>
     /// <param name="eventBus">Event bus for publishing events.</param>
-    public CommandDispatcher(EventBus eventBus)
+    public CommandDispatcher(EventBus eventBus, ICommandRouter router)
     {
-        // _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
-        // _logger = logger ?? LoggerProvider.Current;
+        _router = router ?? throw new ArgumentNullException(nameof(router));
 
         Log.Debug("CommandDispatcher created");
     }
@@ -39,20 +37,18 @@ public sealed class CommandDispatcher
         Log.Debug($"Dispatching command: {command.GetType().Name} (seq={command.SequenceNumber})");
 
         // Validate the command
-        // ValidationResult validation = _engine.Validate(command);
-        // if (!validation.IsValid)
-        // {
-        //     _logger.Warning("Command validation failed: {0}", validation.GetErrorSummary());
-        //     return CommandResult.Invalid(validation);
-        // }
+        ValidationResult validation = _router.Validate(command);
+        if (!validation.IsValid)
+        {
+            Log.Warning($"Command validation failed: {validation.GetErrorSummary()}");
+            return CommandResult.Invalid(validation);
+        }
 
         // Execute the command
         IReadOnlyList<IGameEvent> events;
         try
         {
-            Log.Info("TODO: Command execution is not implemented yet, returning empty event list");
-            events = [];
-            // events = _engine.Execute(command);
+            events = _router.Execute(command);
         }
         catch (Exception ex)
         {
