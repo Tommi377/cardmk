@@ -11,18 +11,36 @@ public sealed class CommandDispatcher
 {
     private readonly ICommandRouter _router;
     private readonly EventBus _eventBus;
+    private int _expectedSequenceNumber;
 
     /// <summary>
     /// Creates a new command dispatcher.
     /// </summary>
     /// <param name="router">Command router for validation and execution.</param>
     /// <param name="eventBus">Event bus for publishing events.</param>
-    public CommandDispatcher(EventBus eventBus, ICommandRouter router)
+    public CommandDispatcher(EventBus eventBus, ICommandRouter router, int initialSequenceNumber = 0)
     {
         _eventBus = eventBus ?? throw new ArgumentNullException(nameof(eventBus));
         _router = router ?? throw new ArgumentNullException(nameof(router));
+        _expectedSequenceNumber = initialSequenceNumber;
 
         Log.Debug("CommandDispatcher created");
+    }
+
+    /// <summary>
+    /// Validates a command without executing it.
+    /// </summary>
+    public ValidationResult Validate(IGameCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if (command.SequenceNumber != _expectedSequenceNumber)
+        {
+            return ValidationResult.Invalid(
+                ValidationErrorCodes.InvalidSequence,
+                $"Invalid command sequence {command.SequenceNumber}, expected {_expectedSequenceNumber}");
+        }
+
+        return _router.Validate(command);
     }
 
     /// <summary>
@@ -36,8 +54,7 @@ public sealed class CommandDispatcher
 
         Log.Debug($"Dispatching command: {command.GetType().Name} (seq={command.SequenceNumber})");
 
-        // Validate the command
-        ValidationResult validation = _router.Validate(command);
+        ValidationResult validation = Validate(command);
         if (!validation.IsValid)
         {
             Log.Warning($"Command validation failed: {validation.GetErrorSummary()}");
@@ -63,6 +80,7 @@ public sealed class CommandDispatcher
             _eventBus.Publish(gameEvent);
         }
 
+        _expectedSequenceNumber++;
         Log.Debug($"Command succeeded, published {events.Count} events");
         return CommandResult.Success(events);
     }

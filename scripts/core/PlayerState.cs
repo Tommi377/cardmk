@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RealMK;
 
@@ -7,9 +9,11 @@ namespace RealMK;
 /// </summary>
 public sealed class PlayerState
 {
+    private readonly List<CardInstance> _drawPile;
     private readonly List<CardInstance> _hand;
     private readonly List<CardInstance> _playArea;
-    
+    private readonly List<CardInstance> _discardPile;
+
     // TODO: Units, Skills, Crystals management
     // private readonly List<UnitInstance> _units;
     // private readonly List<SkillId> _skills;
@@ -23,16 +27,11 @@ public sealed class PlayerState
         Id = id;
         HeroId = heroId;
         Position = startPosition;
-        // TODO: Deck
-        // Deck = new DeckState();
+        _drawPile = new List<CardInstance>();
         _hand = new List<CardInstance>();
         _playArea = new List<CardInstance>();
-        
-        // TODO: Units, Skills, Crystals management
-        // _units = new List<UnitInstance>();
-        // _skills = new List<SkillId>();
-        // _crystals = new Dictionary<ManaType, int>();
-        // PersonalMana = new ManaPool();
+        _discardPile = new List<CardInstance>();
+        TurnResources = new TurnResourcePool();
 
         // Default starting values
         Level = 1;
@@ -62,11 +61,10 @@ public sealed class PlayerState
     /// </summary>
     public HexCoord Position { get; set; }
 
-    // TODO: Deck
     /// <summary>
-    /// The player's deck state.
+    /// Cards currently in draw pile (top of deck is at the end of this list).
     /// </summary>
-    // public DeckState Deck { get; }
+    public IReadOnlyList<CardInstance> DrawPile => _drawPile;
 
     /// <summary>
     /// Cards currently in hand.
@@ -74,9 +72,14 @@ public sealed class PlayerState
     public IReadOnlyList<CardInstance> Hand => _hand;
 
     /// <summary>
-    /// Cards currently in the play area (being used this turn).
+    /// Cards currently in the play area.
     /// </summary>
     public IReadOnlyList<CardInstance> PlayArea => _playArea;
+
+    /// <summary>
+    /// Cards currently in discard pile.
+    /// </summary>
+    public IReadOnlyList<CardInstance> DiscardPile => _discardPile;
 
     // TODO: Units, Skills, Crystals management
     /// <summary>
@@ -93,11 +96,6 @@ public sealed class PlayerState
     /// Crystals the player has stored (by mana type).
     /// </summary>
     // public IReadOnlyDictionary<ManaType, int> Crystals => _crystals;
-
-    /// <summary>
-    /// Personal mana pool available for use.
-    /// </summary>
-    // public ManaPool PersonalMana { get; }
 
     /// <summary>
     /// Player's current level (1-10).
@@ -139,16 +137,10 @@ public sealed class PlayerState
     /// </summary>
     public int InfluenceBonus { get; set; }
 
-    // TODO: Deck
     /// <summary>
-    /// Number of wounds the player has (computed from deck).
+    /// Resource pool accumulated by played cards this turn.
     /// </summary>
-    // public int WoundCount => Deck.WoundCount;
-
-    /// <summary>
-    /// Movement points available this turn.
-    /// </summary>
-    public int MovementPoints { get; set; }
+    public TurnResourcePool TurnResources { get; }
 
     /// <summary>
     /// Whether the player has attacked this turn.
@@ -169,27 +161,89 @@ public sealed class PlayerState
         Log.Debug($"Player {Id}: Marked mana taken this turn");
     }
 
-    #region Hand Management
+    #region Deck and Hand Management
 
     /// <summary>
-    /// Adds a card to the player's hand.
+    /// Clears and initializes draw pile with provided cards.
     /// </summary>
-    public void AddToHand(CardInstance card)
+    public void InitializeDrawPile(IEnumerable<CardInstance> cards)
     {
-        _hand.Add(card);
-        Log.Debug($"Player {Id}: Added card {card.Id} to hand");
+        ArgumentNullException.ThrowIfNull(cards);
+
+        _drawPile.Clear();
+        _hand.Clear();
+        _playArea.Clear();
+        _discardPile.Clear();
+
+        foreach (CardInstance card in cards)
+        {
+            card.Zone = CardZone.DrawPile;
+            _drawPile.Add(card);
+        }
+
+        Log.Debug($"Player {Id}: Initialized draw pile with {_drawPile.Count} cards");
     }
 
     /// <summary>
-    /// Removes a card from the player's hand.
+    /// Adds a card to draw pile.
     /// </summary>
-    /// <returns>True if the card was in hand and removed.</returns>
-    public bool RemoveFromHand(CardInstance card)
+    public void AddToDrawPile(CardInstance card)
     {
-        bool removed = _hand.Remove(card);
-        if (removed)
-            Log.Debug($"Player {Id}: Removed card {card.Id} from hand");
-        return removed;
+        ArgumentNullException.ThrowIfNull(card);
+        card.Zone = CardZone.DrawPile;
+        _drawPile.Add(card);
+    }
+
+    /// <summary>
+    /// Draws one card from draw pile into hand.
+    /// </summary>
+    public CardInstance? DrawOne()
+    {
+        if (_drawPile.Count == 0)
+        {
+            return null;
+        }
+
+        int topIndex = _drawPile.Count - 1;
+        CardInstance drawn = _drawPile[topIndex];
+        _drawPile.RemoveAt(topIndex);
+        drawn.Zone = CardZone.Hand;
+        _hand.Add(drawn);
+        return drawn;
+    }
+
+    /// <summary>
+    /// Draws up to <paramref name="count"/> cards from draw pile into hand.
+    /// </summary>
+    public IReadOnlyList<CardInstance> DrawCards(int count)
+    {
+        if (count <= 0)
+        {
+            return [];
+        }
+
+        var drawn = new List<CardInstance>(count);
+        for (int i = 0; i < count; i++)
+        {
+            CardInstance? card = DrawOne();
+            if (card == null)
+            {
+                break;
+            }
+
+            drawn.Add(card);
+        }
+
+        return drawn;
+    }
+
+    /// <summary>
+    /// Tries to find a card in hand by instance id.
+    /// </summary>
+    public bool TryGetCardInHand(CardInstanceId cardInstanceId, out CardInstance? card)
+    {
+        card = _hand.FirstOrDefault(c => c.Id == cardInstanceId);
+        return card != null;
     }
 
     /// <summary>
@@ -197,12 +251,130 @@ public sealed class PlayerState
     /// </summary>
     public bool PlayCard(CardInstance card)
     {
+        ArgumentNullException.ThrowIfNull(card);
         if (!_hand.Remove(card))
+        {
             return false;
+        }
 
+        card.Zone = CardZone.PlayArea;
         _playArea.Add(card);
         Log.Debug($"Player {Id}: Played card {card.Id}");
         return true;
+    }
+
+    /// <summary>
+    /// Removes a card from play area and discards it.
+    /// </summary>
+    public bool DiscardFromPlayArea(CardInstance card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        if (!_playArea.Remove(card))
+        {
+            return false;
+        }
+
+        card.Zone = CardZone.DiscardPile;
+        _discardPile.Add(card);
+        return true;
+    }
+
+    /// <summary>
+    /// Moves all hand and play area cards to discard pile.
+    /// </summary>
+    public IReadOnlyList<CardZoneChange> DiscardHandAndPlayArea()
+    {
+        var moved = new List<CardZoneChange>(_hand.Count + _playArea.Count);
+
+        foreach (CardInstance card in _hand)
+        {
+            card.Zone = CardZone.DiscardPile;
+            _discardPile.Add(card);
+            moved.Add(new CardZoneChange
+            {
+                CardInstanceId = card.Id,
+                From = CardZone.Hand,
+                To = CardZone.DiscardPile
+            });
+        }
+
+        foreach (CardInstance card in _playArea)
+        {
+            card.Zone = CardZone.DiscardPile;
+            _discardPile.Add(card);
+            moved.Add(new CardZoneChange
+            {
+                CardInstanceId = card.Id,
+                From = CardZone.PlayArea,
+                To = CardZone.DiscardPile
+            });
+        }
+
+        _hand.Clear();
+        _playArea.Clear();
+        return moved;
+    }
+
+    /// <summary>
+    /// Shuffles discard pile into draw pile.
+    /// </summary>
+    /// <returns>Number of cards moved from discard to draw pile.</returns>
+    public int ReshuffleDiscardIntoDraw(DeterministicRandom rng)
+    {
+        ArgumentNullException.ThrowIfNull(rng);
+        if (_discardPile.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (CardInstance card in _discardPile)
+        {
+            card.Zone = CardZone.DrawPile;
+            _drawPile.Add(card);
+        }
+
+        _discardPile.Clear();
+        rng.Shuffle(_drawPile);
+        return _drawPile.Count;
+    }
+
+    /// <summary>
+    /// Adds a card directly into hand.
+    /// </summary>
+    public void AddToHand(CardInstance card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        card.Zone = CardZone.Hand;
+        _hand.Add(card);
+        Log.Debug($"Player {Id}: Added card {card.Id} to hand");
+    }
+
+    /// <summary>
+    /// Removes a card from hand.
+    /// </summary>
+    public bool RemoveFromHand(CardInstance card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        bool removed = _hand.Remove(card);
+        if (removed)
+        {
+            Log.Debug($"Player {Id}: Removed card {card.Id} from hand");
+        }
+        return removed;
+    }
+
+    /// <summary>
+    /// Removes a specific card from play area.
+    /// </summary>
+    public bool RemoveFromPlayArea(CardInstance card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        bool removed = _playArea.Remove(card);
+        if (removed)
+        {
+            Log.Debug($"Player {Id}: Removed card {card.Id} from play area");
+        }
+        return removed;
     }
 
     /// <summary>
@@ -212,166 +384,28 @@ public sealed class PlayerState
     {
         foreach (CardInstance card in _playArea)
         {
-            // TODO: Deck
-            // Deck.Discard(card);
+            card.Zone = CardZone.DiscardPile;
+            _discardPile.Add(card);
         }
+
         _playArea.Clear();
         Log.Debug($"Player {Id}: Cleaned up play area");
     }
 
     /// <summary>
-    /// Removes a specific card from the play area.
-    /// </summary>
-    /// <returns>True if the card was in the play area and removed.</returns>
-    public bool RemoveFromPlayArea(CardInstance card)
-    {
-        bool removed = _playArea.Remove(card);
-        if (removed)
-            Log.Debug($"Player {Id}: Removed card {card.Id} from play area");
-        return removed;
-    }
-
-    /// <summary>
-    /// Discards the entire hand to the discard pile.
+    /// Discards the entire hand to discard pile.
     /// </summary>
     public void DiscardHand()
     {
         foreach (CardInstance card in _hand)
         {
-            // TODO: Deck
-            // Deck.Discard(card);
+            card.Zone = CardZone.DiscardPile;
+            _discardPile.Add(card);
         }
+
         _hand.Clear();
         Log.Debug($"Player {Id}: Discarded entire hand");
     }
-
-    #endregion
-
-    #region Unit Management
-
-    // TODO: Unit
-    /// <summary>
-    /// Recruits a unit.
-    /// </summary>
-    // public bool RecruitUnit(UnitInstance unit)
-    // {
-    //     if (_units.Count >= UnitSlots)
-    //     {
-    //         LoggerProvider.Current.Warning("Player {0}: Cannot recruit unit, no slots available", Id);
-    //         return false;
-    //     }
-    //
-    //     _units.Add(unit);
-    //     LoggerProvider.Current.Debug("Player {0}: Recruited unit {1}", Id, unit.DefinitionId);
-    //     return true;
-    // }
-
-    /// <summary>
-    /// Removes a unit from the player's control.
-    /// </summary>
-    // public bool DisbandUnit(UnitInstance unit)
-    // {
-    //     bool removed = _units.Remove(unit);
-    //     if (removed)
-    //         LoggerProvider.Current.Debug("Player {0}: Disbanded unit {1}", Id, unit.DefinitionId);
-    //     return removed;
-    // }
-
-    /// <summary>
-    /// Gets all ready (unwounded) units.
-    /// </summary>
-    // public IEnumerable<UnitInstance> GetReadyUnits()
-    // {
-    //     return _units.Where(u => u.IsReady);
-    // }
-
-    /// <summary>
-    /// Gets all wounded units.
-    /// </summary>
-    // public IEnumerable<UnitInstance> GetWoundedUnits()
-    // {
-    //     return _units.Where(u => u.IsWounded);
-    // }
-
-    #endregion
-
-    #region Skill Management
-
-    // TODO: Skills
-    /// <summary>
-    /// Adds a skill to the player.
-    /// </summary>
-    // public void AddSkill(SkillId skill)
-    // {
-    //     if (!_skills.Contains(skill))
-    //     {
-    //         _skills.Add(skill);
-    //         LoggerProvider.Current.Debug("Player {0}: Acquired skill {1}", Id, skill);
-    //     }
-    // }
-
-    /// <summary>
-    /// Checks if the player has a specific skill.
-    /// </summary>
-    // public bool HasSkill(SkillId skill)
-    // {
-    //     return _skills.Contains(skill);
-    // }
-
-    #endregion
-
-    #region Crystal Management
-
-    // TODO: Inventory / Crystals
-    /// <summary>
-    /// Adds a crystal of the specified mana type.
-    /// </summary>
-    // public void AddCrystal(ManaType type, int count = 1)
-    // {
-    //     if (count <= 0) return;
-    //
-    //     if (_crystals.ContainsKey(type))
-    //         _crystals[type] += count;
-    //     else
-    //         _crystals[type] = count;
-    //
-    //     LoggerProvider.Current.Debug("Player {0}: Added {1} {2} crystal(s)", Id, count, type);
-    // }
-
-    /// <summary>
-    /// Spends a crystal of the specified type.
-    /// </summary>
-    /// <returns>True if successful.</returns>
-    // public bool SpendCrystal(ManaType type, int count = 1)
-    // {
-    //     if (!_crystals.TryGetValue(type, out int available) || available < count)
-    //         return false;
-    //
-    //     _crystals[type] -= count;
-    //     if (_crystals[type] == 0)
-    //         _crystals.Remove(type);
-    //
-    //     LoggerProvider.Current.Debug("Player {0}: Spent {1} {2} crystal(s)", Id, count, type);
-    //     return true;
-    // }
-
-    /// <summary>
-    /// Uses (spends) a crystal of the specified type for mana.
-    /// Alias for SpendCrystal.
-    /// </summary>
-    /// <returns>True if successful.</returns>
-    // public bool UseCrystal(ManaType type)
-    // {
-    //     return SpendCrystal(type, 1);
-    // }
-
-    /// <summary>
-    /// Gets the number of crystals of a specific type.
-    /// </summary>
-    // public int GetCrystalCount(ManaType type)
-    // {
-    //     return _crystals.TryGetValue(type, out int count) ? count : 0;
-    // }
 
     #endregion
 
@@ -382,11 +416,9 @@ public sealed class PlayerState
     /// </summary>
     public void StartTurn()
     {
-        MovementPoints = 0;
         HasAttackedThisTurn = false;
         HasTakenManaThisTurn = false;
-        // TODO: Mana Tokens
-        // PersonalMana.Clear();
+        TurnResources.Clear();
         Log.Debug($"Player {Id}: Turn started");
     }
 
@@ -395,7 +427,8 @@ public sealed class PlayerState
     /// </summary>
     public void EndTurn()
     {
-        CleanUpPlayArea();
+        DiscardHandAndPlayArea();
+        TurnResources.Clear();
         Log.Debug($"Player {Id}: Turn ended");
     }
 
@@ -409,4 +442,3 @@ public sealed class PlayerState
         return baseInfluence + InfluenceBonus + Reputation;
     }
 }
- 

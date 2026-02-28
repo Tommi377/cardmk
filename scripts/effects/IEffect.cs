@@ -16,28 +16,33 @@ public interface IEffect
     /// </summary>
     EffectType Type { get; }
 
-    // TODO: Effects
     /// <summary>
-    /// Checks if this effect can be applied in the given context.
+    /// Validates this effect in the given context.
     /// </summary>
     /// <param name="context">The current game context for effect resolution.</param>
-    /// <returns>True if the effect can be applied, false otherwise.</returns>
-    bool CanApply(/*EffectContext context*/);
+    /// <param name="resolutionInput">Deterministic resolution input from the command.</param>
+    /// <param name="path">Path for nested effect validation, e.g. root.0.</param>
+    /// <returns>Validation result.</returns>
+    ValidationResult Validate(EffectContext context, CardResolutionInput resolutionInput, string path);
 
     /// <summary>
     /// Applies this effect to the game state via the context.
     /// </summary>
     /// <param name="context">The context containing game state and accumulated values.</param>
+    /// <param name="resolutionInput">Deterministic resolution input from the command.</param>
+    /// <param name="path">Path for nested effect application, e.g. root.0.</param>
     /// <returns>The result of applying this effect.</returns>
-    EffectResult Apply(/*EffectContext context*/);
+    EffectResult Apply(EffectContext context, CardResolutionInput resolutionInput, string path);
 
     /// <summary>
     /// Generates a preview of what this effect would do without applying it.
     /// Used for UI tooltips and planning.
     /// </summary>
     /// <param name="context">The context for preview calculation.</param>
+    /// <param name="resolutionInput">Deterministic resolution input from the command.</param>
+    /// <param name="path">Path for nested preview calculation, e.g. root.0.</param>
     /// <returns>A preview showing the potential effect outcome.</returns>
-    EffectPreview Preview(/*EffectContext context*/);
+    EffectPreview Preview(EffectContext context, CardResolutionInput resolutionInput, string path);
 }
 
 /// <summary>

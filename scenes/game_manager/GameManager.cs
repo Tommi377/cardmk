@@ -24,6 +24,16 @@ public partial class GameManager : Node
     public MapState? MapState => _session?.MapState;
 
     /// <summary>
+    /// The current game state aggregate.
+    /// </summary>
+    public GameState? State => _session?.State;
+
+    /// <summary>
+    /// Returns true when the game session is initialized.
+    /// </summary>
+    public bool IsSessionReady => _session != null;
+
+    /// <summary>
     /// Seed used for deterministic random number generation.
     /// </summary>
     [Export]
@@ -118,8 +128,84 @@ public partial class GameManager : Node
         return _session?.GetExplorableEdges();
     }
 
+    /// <summary>
+    /// Starts a new round.
+    /// </summary>
+    public CommandResult StartRound()
+    {
+        if (_session == null)
+        {
+            return SessionUnavailable("Cannot start round - session not ready");
+        }
+
+        return _session.StartRound();
+    }
+
+    /// <summary>
+    /// Draws cards for a player.
+    /// </summary>
+    /// <param name="playerId">Player drawing cards.</param>
+    /// <param name="count">Number of cards to draw.</param>
+    public CommandResult DrawCards(PlayerId playerId, int count)
+    {
+        if (_session == null)
+        {
+            return SessionUnavailable("Cannot draw cards - session not ready");
+        }
+
+        return _session.DrawCards(playerId, count);
+    }
+
+    /// <summary>
+    /// Plays a card for a player.
+    /// </summary>
+    /// <param name="request">Play request payload.</param>
+    public CommandResult PlayCard(PlayCardRequest request)
+    {
+        if (_session == null)
+        {
+            return SessionUnavailable("Cannot play card - session not ready");
+        }
+
+        return _session.PlayCard(request);
+    }
+
+    /// <summary>
+    /// Ends the current turn for a player.
+    /// </summary>
+    /// <param name="playerId">Player ending their turn.</param>
+    public CommandResult EndTurn(PlayerId playerId)
+    {
+        if (_session == null)
+        {
+            return SessionUnavailable("Cannot end turn - session not ready");
+        }
+
+        return _session.EndTurn(playerId);
+    }
+
+    /// <summary>
+    /// Gets a player state by id if available.
+    /// </summary>
+    /// <param name="playerId">Player id.</param>
+    /// <returns>Player state or null if unavailable.</returns>
+    public PlayerState? GetPlayerState(PlayerId playerId)
+    {
+        if (_session?.State == null)
+        {
+            return null;
+        }
+
+        return _session.State.TryGetPlayer(playerId, out PlayerState? player) ? player : null;
+    }
+
     private void ShowLoading(bool show)
     {
         // TODO: Add loading overlay
+    }
+
+    private static CommandResult SessionUnavailable(string message)
+    {
+        return CommandResult.Invalid("SESSION_NOT_READY", message);
     }
 }

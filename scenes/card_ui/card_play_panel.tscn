@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/card_ui/CardPlayPanel.cs" id="1_cardpanel"]
+
+[node name="CardPlayPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(360, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cardpanel")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Card Controls"
+
+[node name="TopActionsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StartRoundButton" type="Button" parent="MarginContainer/VBoxContainer/TopActionsRow"]
+layout_mode = 2
+text = "Start Round"
+
+[node name="DrawCountSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/TopActionsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+value = 1.0
+
+[node name="DrawButton" type="Button" parent="MarginContainer/VBoxContainer/TopActionsRow"]
+layout_mode = 2
+text = "Draw"
+
+[node name="EndTurnButton" type="Button" parent="MarginContainer/VBoxContainer/TopActionsRow"]
+layout_mode = 2
+text = "End Turn"
+
+[node name="PhaseLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Phase: -"
+autowrap_mode = 2
+
+[node name="DeckSummaryLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Deck: -"
+autowrap_mode = 2
+
+[node name="ResourcesLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Resources: -"
+autowrap_mode = 2
+
+[node name="HandList" type="ItemList" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+allow_reselect = true
+select_mode = 0
+
+[node name="PlayOptionsRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayModeOption" type="OptionButton" parent="MarginContainer/VBoxContainer/PlayOptionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChoiceIndexSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/PlayOptionsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 0)
+min_value = 0.0
+step = 1.0
+
+[node name="SidewaysResourceOption" type="OptionButton" parent="MarginContainer/VBoxContainer/PlayOptionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayButton" type="Button" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Play Selected"
+
+[node name="EventLog" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = false
+fit_content = false
