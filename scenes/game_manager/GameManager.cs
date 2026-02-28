@@ -45,9 +45,9 @@ public partial class GameManager : Node
 
             string contentPath = ProjectSettings.GlobalizePath("res://content");
             _session = GameSessionFactory.CreateFromContentPath(contentPath, Seed, validate: true);
-            _worldMap.Initialize(MapState, EventBus);
 
             TilePlacementResult result = _session.InitializeMap();
+            _worldMap.Initialize(MapState, EventBus);
             if (result is { IsValid: true, Tile: not null })
             {
                 Log.Info($"GameManager: Map initialized with starting tile {result.Tile.Definition.Id}");
