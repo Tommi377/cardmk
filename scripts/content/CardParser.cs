@@ -11,12 +11,23 @@ namespace RealMK;
 /// </summary>
 public sealed class CardParser
 {
+    private readonly CardScriptRegistry _scriptRegistry;
+
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true
     };
+
+    /// <summary>
+    /// Creates a card parser.
+    /// </summary>
+    /// <param name="scriptRegistry">Script registry used for scripted effect validation.</param>
+    public CardParser(CardScriptRegistry? scriptRegistry = null)
+    {
+        _scriptRegistry = scriptRegistry ?? CardScriptRegistry.Default;
+    }
 
     /// <summary>
     /// Parses all cards from a JSON file.
@@ -112,6 +123,7 @@ public sealed class CardParser
                 Value = dto.Value ?? 0
             },
             "composite" => ParseCompositeEffect(dto, cardId, path),
+            "script" => ParseScriptedEffect(dto, cardId, path),
             _ => throw new ContentParseException($"Card '{cardId}' effect '{path}' has unknown type '{dto.Type}'")
         };
     }
@@ -191,6 +203,26 @@ public sealed class CardParser
         _ => throw new ContentParseException($"Card '{cardId}' effect '{path}' has unknown mode '{mode}'")
     };
 
+    private ScriptedEffect ParseScriptedEffect(EffectDto dto, string cardId, string path)
+    {
+        if (string.IsNullOrWhiteSpace(dto.ScriptId))
+        {
+            throw new ContentParseException($"Card '{cardId}' effect '{path}' of type 'script' is missing required field 'scriptId'");
+        }
+
+        if (!_scriptRegistry.IsRegistered(dto.ScriptId))
+        {
+            throw new ContentParseException($"Card '{cardId}' effect '{path}' references unknown scriptId '{dto.ScriptId}'");
+        }
+
+        return new ScriptedEffect
+        {
+            ScriptId = dto.ScriptId,
+            Parameters = dto.Params ?? new Dictionary<string, object>(),
+            Registry = _scriptRegistry
+        };
+    }
+
     private sealed class CardFileDto
     {
         [JsonPropertyName("cards")]
@@ -255,5 +287,11 @@ public sealed class CardParser
 
         [JsonPropertyName("components")]
         public List<EffectDto>? Components { get; set; }
+
+        [JsonPropertyName("scriptId")]
+        public string? ScriptId { get; set; }
+
+        [JsonPropertyName("params")]
+        public Dictionary<string, object>? Params { get; set; }
     }
 }

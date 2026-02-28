@@ -10,6 +10,7 @@ namespace RealMK;
 public sealed class ContentLoader
 {
     private readonly CardParser _cardParser;
+    private readonly DeckParser _deckParser;
     // private readonly EnemyParser _enemyParser;
     // private readonly UnitParser _unitParser;
     private readonly TileParser _tileParser;
@@ -23,6 +24,7 @@ public sealed class ContentLoader
     public ContentLoader()
     {
         _cardParser = new CardParser();
+        _deckParser = new DeckParser();
         // _enemyParser = new EnemyParser();
         // _unitParser = new UnitParser();
         _tileParser = new TileParser();
@@ -45,13 +47,14 @@ public sealed class ContentLoader
 
         // Load each content type from their directories
         LoadCardsFromDirectory(Path.Combine(contentPath, "cards"), database);
+        LoadDecksFromDirectory(Path.Combine(contentPath, "decks"), database);
         // LoadEnemiesFromDirectory(Path.Combine(contentPath, "enemies"), database);
         // LoadUnitsFromDirectory(Path.Combine(contentPath, "units"), database);
         LoadTilesFromDirectory(Path.Combine(contentPath, "tiles"), database);
         // LoadScenariosFromDirectory(Path.Combine(contentPath, "scenarios"), database);
         // LoadHeroesFromDirectory(Path.Combine(contentPath, "heroes"), database);
 
-        Log.Info($"Content loading complete: {database.Cards.Count} cards, {database.Tiles.Count} tiles");
+        Log.Info($"Content loading complete: {database.Cards.Count} cards, {database.StarterDecks.Count} starter decks, {database.Tiles.Count} tiles");
         // Log.Info(
         //     "Content loaded: {0} cards, {1} enemies, {2} units, {3} tiles, {4} scenarios, {5} heroes",
         //     database.Cards.Count,
@@ -92,6 +95,33 @@ public sealed class ContentLoader
             {
                 Log.Error($"Failed to load cards from {file}: {ex.Message}");
                 throw new ContentParseException($"Failed to parse card file '{file}': {ex.Message}", ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Loads starter deck definitions from a directory.
+    /// </summary>
+    public void LoadDecksFromDirectory(string directoryPath, ContentDatabase database)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            Log.Debug($"Decks directory not found: {directoryPath}");
+            return;
+        }
+
+        foreach (string file in Directory.GetFiles(directoryPath, "*.json"))
+        {
+            try
+            {
+                IReadOnlyList<StarterDeckDefinition> decks = _deckParser.ParseFile(file);
+                database.AddStarterDecks(decks);
+                Log.Debug($"Loaded {decks.Count} starter decks from {Path.GetFileName(file)}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to load starter decks from {file}: {ex.Message}");
+                throw new ContentParseException($"Failed to parse starter deck file '{file}': {ex.Message}", ex);
             }
         }
     }
@@ -313,6 +343,14 @@ public sealed class ContentLoader
     public IReadOnlyList<CardDefinition> LoadCardsFromJson(string json)
     {
         return _cardParser.ParseJson(json);
+    }
+
+    /// <summary>
+    /// Loads starter decks directly from JSON string.
+    /// </summary>
+    public IReadOnlyList<StarterDeckDefinition> LoadStarterDecksFromJson(string json)
+    {
+        return _deckParser.ParseJson(json);
     }
 
     // TODO: Enemies

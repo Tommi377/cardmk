@@ -1,0 +1,16 @@
+{
+  "starterDecks": [
+    {
+      "heroId": "hero.default",
+      "entries": [
+        { "cardId": "card.march", "count": 2 },
+        { "cardId": "card.swiftness", "count": 2 },
+        { "cardId": "card.rage", "count": 2 },
+        { "cardId": "card.promise", "count": 2 },
+        { "cardId": "card.determination", "count": 2 },
+        { "cardId": "card.tranquility", "count": 2 },
+        { "cardId": "card.wound", "count": 2 }
+      ]
+    }
+  ]
+}

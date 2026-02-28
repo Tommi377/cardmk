@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Content Include="content\cards\basic_actions.json" />
+    <Content Include="content\decks\starter_decks.json" />
     <Content Include="content\tiles\tiles.json" />
   </ItemGroup>
 </Project>

@@ -12,6 +12,7 @@ namespace RealMK;
 public sealed class ContentDatabase
 {
     private readonly Dictionary<CardId, CardDefinition> _cards = new();
+    private readonly Dictionary<HeroId, StarterDeckDefinition> _starterDecks = new();
     // private readonly Dictionary<EnemyId, EnemyDefinition> _enemies = new();
     // private readonly Dictionary<UnitId, UnitDefinition> _units = new();
     private readonly Dictionary<TileDefinitionId, TileDefinition> _tiles = new();
@@ -87,6 +88,57 @@ public sealed class ContentDatabase
     public IEnumerable<CardDefinition> GetCardsByColor(CardColor color)
     {
         return _cards.Values.Where(c => c.Color == color);
+    }
+
+    #endregion
+
+    #region Starter Decks
+
+    /// <summary>
+    /// All starter deck definitions keyed by hero id.
+    /// </summary>
+    public IReadOnlyDictionary<HeroId, StarterDeckDefinition> StarterDecks => _starterDecks;
+
+    /// <summary>
+    /// Gets a starter deck by hero id.
+    /// </summary>
+    public StarterDeckDefinition GetStarterDeck(HeroId heroId)
+    {
+        if (!_starterDecks.TryGetValue(heroId, out StarterDeckDefinition? deck))
+        {
+            throw new KeyNotFoundException($"Starter deck for hero '{heroId}' not found in content database");
+        }
+
+        return deck;
+    }
+
+    /// <summary>
+    /// Tries to get a starter deck by hero id.
+    /// </summary>
+    public bool TryGetStarterDeck(HeroId heroId, out StarterDeckDefinition? deck)
+    {
+        return _starterDecks.TryGetValue(heroId, out deck);
+    }
+
+    /// <summary>
+    /// Adds a starter deck definition.
+    /// </summary>
+    public void AddStarterDeck(StarterDeckDefinition starterDeck)
+    {
+        ArgumentNullException.ThrowIfNull(starterDeck);
+        _starterDecks[starterDeck.HeroId] = starterDeck;
+        Log.Trace($"Added starter deck for hero: {starterDeck.HeroId}");
+    }
+
+    /// <summary>
+    /// Adds multiple starter deck definitions.
+    /// </summary>
+    public void AddStarterDecks(IEnumerable<StarterDeckDefinition> starterDecks)
+    {
+        foreach (StarterDeckDefinition starterDeck in starterDecks)
+        {
+            AddStarterDeck(starterDeck);
+        }
     }
 
     #endregion
@@ -363,7 +415,7 @@ public sealed class ContentDatabase
     /// Gets a summary of the content database.
     /// </summary>
     public string GetSummary() {
-        return $"ContentDatabase: {_cards.Count} cards";
+        return $"ContentDatabase: {_cards.Count} cards, {_starterDecks.Count} starter decks";
         // return $"ContentDatabase: {_cards.Count} cards, {_enemies.Count} enemies, " +
         //        $"{_units.Count} units, {_tiles.Count} tiles, {_scenarios.Count} scenarios, " +
         //        $"{_heroes.Count} heroes";
@@ -375,6 +427,7 @@ public sealed class ContentDatabase
     public void Clear()
     {
         _cards.Clear();
+        _starterDecks.Clear();
         _tiles.Clear();
         // _enemies.Clear();
         // _units.Clear();

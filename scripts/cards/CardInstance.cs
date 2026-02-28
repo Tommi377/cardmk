@@ -3,18 +3,6 @@ using System;
 namespace RealMK;
 
 /// <summary>
-/// The current location/state of a card instance.
-/// </summary>
-public enum CardState
-{
-    InDeck,
-    InHand,
-    InPlayArea,
-    InDiscard,
-    Removed
-}
-
-/// <summary>
 /// Represents a specific card instance in play.
 /// Each physical copy of a card definition gets its own instance.
 /// </summary>
@@ -38,7 +26,7 @@ public sealed class CardInstance
     /// <summary>
     /// Current state/location of this card.
     /// </summary>
-    public CardState State { get; set; }
+    public CardZone Zone { get; set; }
 
     /// <summary>
     /// Returns true if this card instance is a wound card.
@@ -49,23 +37,23 @@ public sealed class CardInstance
     /// <summary>
     /// Creates a new card instance with the specified properties.
     /// </summary>
-    public CardInstance(CardInstanceId id, CardId definitionId, PlayerId ownerId, CardState initialState = CardState.InDeck)
+    public CardInstance(CardInstanceId id, CardId definitionId, PlayerId ownerId, CardZone initialZone = CardZone.DrawPile)
     {
         Id = id;
         DefinitionId = definitionId;
         OwnerId = ownerId;
-        State = initialState;
+        Zone = initialZone;
     }
 
     /// <summary>
     /// Returns true if this card can currently be played (is in hand and not a wound).
     /// </summary>
-    public bool CanBePlayed => State == CardState.InHand && !IsWound;
+    public bool CanBePlayed => Zone == CardZone.Hand && !IsWound;
 
     /// <summary>
     /// Returns true if this card can be discarded (is in hand or play area).
     /// </summary>
-    public bool CanBeDiscarded => State is CardState.InHand or CardState.InPlayArea;
+    public bool CanBeDiscarded => Zone is CardZone.Hand or CardZone.PlayArea;
 
-    public override string ToString() => $"CardInstance({Id}, {DefinitionId}, {State})";
+    public override string ToString() => $"CardInstance({Id}, {DefinitionId}, {Zone})";
 }

@@ -22,6 +22,70 @@ internal static class TestDataFactory
             }
         });
 
+        db.AddCard(new CardDefinition
+        {
+            Id = new CardId("card.test.attack"),
+            Type = CardType.Basic,
+            Color = CardColor.Red,
+            NameKey = new LocalizationKey("card.test.attack.name"),
+            DescriptionKey = new LocalizationKey("card.test.attack.desc"),
+            BasicEffect = new AttackEffect
+            {
+                Value = 2,
+                AttackType = AttackType.Melee,
+                Element = Element.Physical
+            }
+        });
+
+        db.AddCard(new CardDefinition
+        {
+            Id = new CardId("card.test.flex"),
+            Type = CardType.Basic,
+            Color = CardColor.Green,
+            NameKey = new LocalizationKey("card.test.flex.name"),
+            DescriptionKey = new LocalizationKey("card.test.flex.desc"),
+            SidewaysValue = 1,
+            BasicEffect = new MovementEffect { Points = 1 },
+            EnhancedEffect = new MovementEffect { Points = 3 }
+        });
+
+        db.AddCard(new CardDefinition
+        {
+            Id = new CardId("card.test.wound"),
+            Type = CardType.Wound,
+            Color = CardColor.None,
+            NameKey = new LocalizationKey("card.test.wound.name"),
+            DescriptionKey = new LocalizationKey("card.test.wound.desc"),
+            CanBePlacedSideways = false
+        });
+
+        db.AddCard(new CardDefinition
+        {
+            Id = new CardId("card.test.script"),
+            Type = CardType.Basic,
+            Color = CardColor.Blue,
+            NameKey = new LocalizationKey("card.test.script.name"),
+            DescriptionKey = new LocalizationKey("card.test.script.desc"),
+            BasicEffect = new ScriptedEffect
+            {
+                ScriptId = "script.gain_reputation",
+                Parameters = new Dictionary<string, object> { ["amount"] = 2 }
+            }
+        });
+
+        db.AddStarterDeck(new StarterDeckDefinition
+        {
+            HeroId = new HeroId("hero.default"),
+            Entries = new[]
+            {
+                new StarterDeckEntry { CardId = new CardId("card.test.move"), Count = 6 },
+                new StarterDeckEntry { CardId = new CardId("card.test.attack"), Count = 2 },
+                new StarterDeckEntry { CardId = new CardId("card.test.flex"), Count = 1 },
+                new StarterDeckEntry { CardId = new CardId("card.test.script"), Count = 1 },
+                new StarterDeckEntry { CardId = new CardId("card.test.wound"), Count = 1 }
+            }
+        });
+
         db.AddTile(CreateTile("tile.starting_01", TileCategory.Starting));
         db.AddTile(CreateTile("tile.countryside_01", TileCategory.Countryside));
         db.AddTile(CreateTile("tile.countryside_02", TileCategory.Countryside));

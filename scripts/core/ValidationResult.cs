@@ -199,4 +199,16 @@ public static class ValidationErrorCodes
 
     /// <summary>Unit is not available (wounded or exhausted).</summary>
     public const string UnitNotAvailable = "UNIT_NOT_AVAILABLE";
+
+    /// <summary>Resolution input is missing a required choice selection.</summary>
+    public const string MissingResolutionChoice = "MISSING_RESOLUTION_CHOICE";
+
+    /// <summary>Resolution input has an invalid choice selection.</summary>
+    public const string InvalidResolutionChoice = "INVALID_RESOLUTION_CHOICE";
+
+    /// <summary>Card references a script id that is not registered.</summary>
+    public const string UnknownScriptId = "UNKNOWN_SCRIPT_ID";
+
+    /// <summary>Script parameters are missing or invalid.</summary>
+    public const string InvalidScriptParameters = "INVALID_SCRIPT_PARAMETERS";
 }

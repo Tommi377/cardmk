@@ -59,12 +59,14 @@ public sealed class VictoryResult
 public sealed class GameState
 {
     private readonly List<PlayerState> _players;
+    private readonly Dictionary<CardInstanceId, CardInstance> _cardInstances;
     // private readonly List<CardInstance> _offerRow;
     // private readonly List<CardInstance> _unitOffer;
     // private readonly List<CardInstance> _advancedActionPool;
     // private readonly List<CardInstance> _spellPool;
     // private readonly List<CardInstance> _artifactPool;
     private int _commandIndex;
+    private int _nextCardInstanceId;
 
     /// <summary>
     /// Creates a new game state.
@@ -74,16 +76,18 @@ public sealed class GameState
         ulong seed,
         // ScenarioId scenarioId,
         // GameSettings settings,
-        IEnumerable<PlayerState> players)
+        IEnumerable<PlayerState> players,
+        MapState? map = null)
     {
         Id = id;
         Seed = seed;
         // ScenarioId = scenarioId;
         // Settings = settings;
         _players = new List<PlayerState>(players);
+        _cardInstances = new Dictionary<CardInstanceId, CardInstance>();
 
         Rng = new DeterministicRandom(seed);
-        Map = new MapState();
+        Map = map ?? new MapState();
         
         // TODO: Mana
         // ManaSource = new ManaSource(_players.Count);
@@ -103,6 +107,7 @@ public sealed class GameState
         ActivePlayerId = _players.FirstOrDefault()?.Id ?? new PlayerId(0);
         GamePhase = GamePhase.Setup;
         _commandIndex = 0;
+        _nextCardInstanceId = 1;
 
         Log.Info($"GameState created: Id={id}, Seed={seed}, Scenario=NOT_IMPLEMENTED, Players={_players.Count}");
     }
@@ -169,6 +174,11 @@ public sealed class GameState
     /// All players in the game.
     /// </summary>
     public IReadOnlyList<PlayerState> Players => _players;
+
+    /// <summary>
+    /// All known card instances in this game.
+    /// </summary>
+    public IReadOnlyDictionary<CardInstanceId, CardInstance> CardInstances => _cardInstances;
 
     // TODO: Pools
     /// <summary>
@@ -254,6 +264,51 @@ public sealed class GameState
     public IEnumerable<PlayerState> GetActivePlayers()
     {
         return _players.Where(p => !p.IsEliminated);
+    }
+
+    #endregion
+
+    #region Card Instances
+
+    /// <summary>
+    /// Registers a card instance in the global game index.
+    /// </summary>
+    public void RegisterCardInstance(CardInstance card)
+    {
+        ArgumentNullException.ThrowIfNull(card);
+        _cardInstances[card.Id] = card;
+    }
+
+    /// <summary>
+    /// Creates and registers a new card instance owned by the specified player.
+    /// </summary>
+    public CardInstance CreateCardInstance(PlayerId ownerId, CardId definitionId, CardZone zone = CardZone.DrawPile)
+    {
+        var id = new CardInstanceId(_nextCardInstanceId++);
+        var card = new CardInstance(id, definitionId, ownerId, zone);
+        RegisterCardInstance(card);
+        return card;
+    }
+
+    /// <summary>
+    /// Tries to get a card instance by id.
+    /// </summary>
+    public bool TryGetCardInstance(CardInstanceId id, out CardInstance? card)
+    {
+        return _cardInstances.TryGetValue(id, out card);
+    }
+
+    /// <summary>
+    /// Gets a card instance by id.
+    /// </summary>
+    public CardInstance GetCardInstance(CardInstanceId id)
+    {
+        if (!_cardInstances.TryGetValue(id, out CardInstance? card))
+        {
+            throw new InvalidOperationException($"Card instance {id} not found");
+        }
+
+        return card;
     }
 
     #endregion
