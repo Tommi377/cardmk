@@ -79,12 +79,15 @@ public sealed record SpawnedEnemyInfo(
 /// </summary>
 public sealed class TilePlacementService
 {
-    private static int _nextEnemyInstanceId = 1;
+    private readonly IMapIdGenerator _idGenerator;
 
     /// <summary>
-    /// Resets the enemy instance ID counter (for testing).
+    /// Creates a tile placement service.
     /// </summary>
-    internal static void ResetEnemyIdCounter() => _nextEnemyInstanceId = 1;
+    public TilePlacementService(IMapIdGenerator idGenerator)
+    {
+        _idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
+    }
 
     /// <summary>
     /// Places a tile on the map at the specified edge position.
@@ -119,7 +122,7 @@ public sealed class TilePlacementService
         }
 
         // Create and place the tile
-        var tile = new MapTile(definition, tileCenter, rotation);
+        var tile = new MapTile(definition, _idGenerator.NextTileId(), tileCenter, rotation);
         map.PlaceTile(tile);
 
         // Spawn enemies
@@ -185,7 +188,7 @@ public sealed class TilePlacementService
                 HexCoord worldPosition = tile.CenterPosition + localOffset.RotateOffset(tile.Rotation);
 
                 EnemyId enemyId = SelectEnemyFromCategory(hexDef.SpawnCategory.Value, rng, enemySelector);
-                var instanceId = new EnemyInstanceId(_nextEnemyInstanceId++);
+                EnemyInstanceId instanceId = _idGenerator.NextEnemyInstanceId();
 
                 spawned.Add(new SpawnedEnemyInfo(
                     instanceId,

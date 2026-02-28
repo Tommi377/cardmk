@@ -1,12 +1,14 @@
 using Godot;
 using Xunit;
+using RealMK;
 
-namespace RealMK;
+namespace RealMK.Tests;
 
 /// <summary>
 /// Tests for WorldMap coordinate conversion and atlas mapping.
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Category", "Godot")]
 public class WorldMapTests
 {
     // -- GetLocationAtlasCoord tests --

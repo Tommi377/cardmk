@@ -24,15 +24,21 @@ public sealed class MapGenerator
     public MapState Map { get; }
 
     /// <summary>
+    /// Last tile placement result produced by this generator.
+    /// </summary>
+    public TilePlacementResult? LastPlacementResult { get; private set; }
+
+    /// <summary>
     /// Creates a new map generator.
     /// </summary>
     /// <param name="content">Content database with tile definitions.</param>
     /// <param name="rng">Deterministic random number generator.</param>
-    public MapGenerator(ContentDatabase content, DeterministicRandom rng)
+    /// <param name="idGenerator">Session-scoped ID generator for placed entities.</param>
+    public MapGenerator(ContentDatabase content, DeterministicRandom rng, IMapIdGenerator idGenerator)
     {
         _content = content ?? throw new ArgumentNullException(nameof(content));
         _rng = rng ?? throw new ArgumentNullException(nameof(rng));
-        _placementService = new TilePlacementService();
+        _placementService = new TilePlacementService(idGenerator ?? throw new ArgumentNullException(nameof(idGenerator)));
         Map = new MapState();
 
         Log.Debug("MapGenerator created");
@@ -77,6 +83,7 @@ public sealed class MapGenerator
             Log.Error($"MapGenerator: Failed to place starting tile: {result.ErrorMessage}");
         }
 
+        LastPlacementResult = result;
         return result;
     }
 
@@ -112,6 +119,7 @@ public sealed class MapGenerator
             Log.Info($"MapGenerator: Explored tile {tileDef.Id} at ({macroCoord})");
         }
 
+        LastPlacementResult = result;
         return result;
     }
 

@@ -9,31 +9,22 @@ namespace RealMK;
 /// </summary>
 public partial class GameManager : Node
 {
-    private ContentDatabase? _contentDb;
-    private EventBus? _eventBus;
-    private CommandDispatcher? _dispatcher;
-    private MapGenerator? _mapGenerator;
-    private DeterministicRandom? _rng;
+    private IGameSession? _session;
 
     [Export] private WorldMap _worldMap = null!;
 
     /// <summary>
     /// The game's event bus for subscribing to events.
     /// </summary>
-    public EventBus? EventBus => _eventBus;
+    public EventBus? EventBus => _session?.EventBus;
 
     /// <summary>
     /// The current map state.
     /// </summary>
-    public MapState? MapState => _mapGenerator?.Map;
+    public MapState? MapState => _session?.MapState;
 
     /// <summary>
-    /// The map generator for exploration.
-    /// </summary>
-    public MapGenerator? MapGenerator => _mapGenerator;
-
-    /// <summary>
-    /// Seed used for random number generation.
+    /// Seed used for deterministic random number generation.
     /// </summary>
     [Export]
     public ulong Seed { get; set; } = 12345;
@@ -48,32 +39,23 @@ public partial class GameManager : Node
     {
         ShowLoading(true);
 
-        _eventBus = new EventBus();
-        _dispatcher = new CommandDispatcher(_eventBus);
-        _rng = new DeterministicRandom(Seed);
-
         try
         {
             Log.Info("Initializing game...");
 
-            // Create content database and load content
-            var loader = new ContentLoader();
             string contentPath = ProjectSettings.GlobalizePath("res://content");
+            _session = GameSessionFactory.CreateFromContentPath(contentPath, Seed, validate: true);
+            _worldMap.Initialize(MapState, EventBus);
 
-            // Try to load content, but don't fail if it doesn't exist
-            if (DirAccess.DirExistsAbsolute(contentPath))
+            TilePlacementResult result = _session.InitializeMap();
+            if (result is { IsValid: true, Tile: not null })
             {
-                _contentDb = loader.LoadAll(contentPath, validate: false);
-                Log.Debug($"GameManager: Loaded content from {contentPath}");
+                Log.Info($"GameManager: Map initialized with starting tile {result.Tile.Definition.Id}");
             }
             else
             {
-                Log.Error($"GameManager: Content directory not found at {contentPath}, using empty database");
-                _contentDb = new ContentDatabase();
+                Log.Error($"GameManager: Failed to initialize map: {result.ErrorMessage}");
             }
-
-            // Initialize map generator and place starting tile
-            InitializeMap();
 
             Log.Info("Game initialized successfully");
         }
@@ -89,67 +71,18 @@ public partial class GameManager : Node
     }
 
     /// <summary>
-    /// Initializes the map with a starting tile.
-    /// </summary>
-    private void InitializeMap()
-    {
-        if (_contentDb == null || _rng == null || _eventBus == null)
-        {
-            Log.Error("GameManager: Cannot initialize map - dependencies not ready");
-            return;
-        }
-
-        _mapGenerator = new MapGenerator(_contentDb, _rng);
-        var result = _mapGenerator.InitializeMap();
-
-        _worldMap.Initialize(MapState, EventBus);
-
-        if (result is { IsValid: true, Tile: not null })
-        {
-            // Publish tile placed event
-            var evt = new EvtTilePlaced
-            {
-                EventIndex = 0,
-                Timestamp = DateTime.UtcNow.Ticks,
-                Tile = result.Tile,
-                SpawnedEnemies = result.SpawnedEnemies,
-                IsStartingTile = true
-            };
-            _eventBus.Publish(evt);
-
-            // Publish map initialized event
-            var initEvt = new EvtMapInitialized
-            {
-                EventIndex = 1,
-                Timestamp = DateTime.UtcNow.Ticks,
-                StartingTileId = result.Tile.TileId,
-                CountrysideDeckSize = _mapGenerator.GetDeckCount(TileCategory.Countryside),
-                CoreDeckSize = _mapGenerator.GetDeckCount(TileCategory.Core),
-                CityDeckSize = _mapGenerator.GetDeckCount(TileCategory.City)
-            };
-            _eventBus.Publish(initEvt);
-
-            Log.Info($"GameManager: Map initialized with starting tile {result.Tile.Definition.Id}");
-        }
-        else
-        {
-            Log.Error($"GameManager: Failed to initialize map: {result.ErrorMessage}");
-        }
-    }
-
-    /// <summary>
     /// Initializes a WorldMap presentation node with the current map state.
     /// </summary>
     /// <param name="worldMap">The WorldMap node to initialize.</param>
     public void InitializeWorldMap(WorldMap worldMap)
     {
-        if (_mapGenerator == null || _eventBus == null)
+        if (_session == null)
         {
-            Log.Error("GameManager: Cannot initialize WorldMap - MapGenerator or EventBus not ready");
+            Log.Error("GameManager: Cannot initialize WorldMap - session not ready");
             return;
         }
 
-        worldMap.Initialize(_mapGenerator.Map, _eventBus);
+        worldMap.Initialize(_session.MapState, _session.EventBus);
         Log.Debug("GameManager: WorldMap initialized");
     }
 
@@ -161,27 +94,16 @@ public partial class GameManager : Node
     /// <returns>Result of the tile placement.</returns>
     public TilePlacementResult? ExploreTile(HexCoord macroCoord, TileCategory? category = null)
     {
-        if (_mapGenerator == null || _eventBus == null)
+        if (_session == null)
         {
-            Log.Error("GameManager: Cannot explore tile - MapGenerator or EventBus not ready");
+            Log.Error("GameManager: Cannot explore tile - session not ready");
             return null;
         }
 
-        var result = _mapGenerator.ExploreTile(macroCoord, category);
+        TilePlacementResult? result = _session.ExploreTile(macroCoord, category);
 
         if (result is { IsValid: true, Tile: not null })
         {
-            // Publish tile placed event
-            var evt = new EvtTilePlaced
-            {
-                EventIndex = 0, // TODO: proper event indexing
-                Timestamp = DateTime.UtcNow.Ticks,
-                Tile = result.Tile,
-                SpawnedEnemies = result.SpawnedEnemies,
-                IsStartingTile = false
-            };
-            _eventBus.Publish(evt);
-
             Log.Info($"GameManager: Explored tile {result.Tile.Definition.Id} at {macroCoord}");
         }
 
@@ -193,7 +115,7 @@ public partial class GameManager : Node
     /// </summary>
     public System.Collections.Generic.IReadOnlyList<(HexCoord Position, int Direction)>? GetExplorableEdges()
     {
-        return _mapGenerator?.GetExplorableEdges();
+        return _session?.GetExplorableEdges();
     }
 
     private void ShowLoading(bool show)
